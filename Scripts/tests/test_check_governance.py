@@ -8,6 +8,7 @@ import unittest
 
 
 MODULE_PATH = Path(__file__).resolve().parents[1] / "check_governance.py"
+REPOSITORY_ROOT = MODULE_PATH.parents[1]
 SPEC = importlib.util.spec_from_file_location("check_governance", MODULE_PATH)
 assert SPEC and SPEC.loader
 governance = importlib.util.module_from_spec(SPEC)
@@ -147,6 +148,24 @@ class GovernanceFixtureTests(unittest.TestCase):
         errors = governance.validate_repository(self.root, self.compliant_changes())
         self.assertTrue(any("no referenced passing TR" in error for error in errors))
 
+    def test_dot_prefixed_governance_paths_are_preserved(self):
+        self.assertEqual(
+            governance.normalize("./.github/workflows/ci.yml"),
+            ".github/workflows/ci.yml",
+        )
+        self.assertTrue(governance.is_governed(".github/workflows/ci.yml"))
+        self.assertTrue(governance.is_governed(".githooks/pre-push"))
+        self.assertTrue(governance.is_governed(".gitignore"))
+
+    def test_dot_prefixed_change_invalidates_digest(self):
+        before = governance.content_digest(self.root)
+        self.write(".github/workflows/ci.yml", "name: first\n")
+        after_create = governance.content_digest(self.root)
+        self.write(".github/workflows/ci.yml", "name: second\n")
+        after_update = governance.content_digest(self.root)
+        self.assertNotEqual(before, after_create)
+        self.assertNotEqual(after_create, after_update)
+
     def test_trivial_label_rejects_executable_change(self):
         errors = governance.validate_repository(
             self.root, [governance.Change("M", "Sources/App.swift")], trivial=True
@@ -158,6 +177,34 @@ class GovernanceFixtureTests(unittest.TestCase):
             self.root, [governance.Change("M", "README.md")], trivial=True
         )
         self.assertEqual(errors, [])
+
+    def test_record_already_in_protected_base_is_immutable(self):
+        path = "docs/changes/CHG-20260723-999-fixture.md"
+        errors = governance.validate_repository(
+            self.root,
+            [governance.Change("M", path)],
+            protected_immutable={path},
+        )
+        self.assertTrue(any("immutable record" in error for error in errors))
+
+    def test_unmerged_branch_record_can_be_refined(self):
+        path = "docs/test-runs/TR-FIXTURE.md"
+        errors = governance.validate_repository(
+            self.root,
+            [governance.Change("M", path)],
+            protected_immutable=set(),
+        )
+        self.assertFalse(any("immutable record" in error for error in errors))
+
+
+class WorkflowContractTests(unittest.TestCase):
+    def test_main_push_validates_only_the_pushed_diff(self):
+        workflow = (REPOSITORY_ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+        self.assertIn(
+            'python3 Scripts/check_governance.py --base "${{ github.event.before }}"',
+            workflow,
+        )
+        self.assertNotIn("run: python3 Scripts/check_governance.py --all", workflow)
 
 
 if __name__ == "__main__":

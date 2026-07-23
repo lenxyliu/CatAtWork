@@ -12,6 +12,67 @@
 
 Every TR stores the governed-content SHA-256 calculated by `Scripts/check_governance.py digest`. A final diff that changes governed content invalidates the prior TR. Failures and skips remain in their original immutable record; a rerun creates another TR.
 
+Governed dot-prefixed paths are first-class inputs, including `.gitignore`,
+`.gitattributes`, `.githooks/` and `.github/workflows/`. Path normalization
+may remove a literal leading `./` or `/`, but must never strip the leading dot
+from a repository filename.
+
+## CI toolchain contract
+
+The Swift job runs on `macos-15` with
+`DEVELOPER_DIR=/Applications/Xcode_16.4.app/Contents/Developer`. The job must
+print `xcodebuild -version` and `swift --version` before compiling so the
+toolchain behind every result remains auditable. The selected Swift compiler
+must support the `swift-tools-version` declared by `Package.swift`; changing
+the runner or Xcode selection is a strategic release-policy change and
+requires a new CHG, ADR, badcase and fresh TR.
+
+Package/asset validation in the hosted job uses Python 3.13 provisioned by
+`actions/setup-python` and installs the exact versions listed in
+`Scripts/requirements-validation.txt`. The identity step prints Python and
+Pillow versions; validation must not rely on packages that happen to be
+preinstalled on a runner image.
+
+## Evidence-record lifecycle
+
+An ADR, CHG, TR or audit created only on an unmerged branch is a proposed
+record. It may be refined in later commits of the same PR so that its links,
+status and final content digest match the actual reviewed change. Earlier
+executions are never overwritten: a rerun creates a new TR and the proposed
+CHG links both the earlier and later evidence.
+
+A record becomes accepted and immutable when its path exists in canonical
+`main`, regardless of whether the host can enforce branch protection. After
+that boundary, modification or deletion fails governance;
+corrections require a new record that links and, where applicable, supersedes
+the accepted one. PR CI compares against the exact base SHA. Local staged
+validation prefers `refs/remotes/origin/main`, then local `main`, so it applies
+the same accepted-record boundary without freezing records that exist only on
+the current feature branch.
+
+## Remote enforcement availability
+
+The private GitHub repository permits only squash merge and deletes a feature
+branch after merge. GitHub Free cannot enforce required PRs/checks,
+force-push prevention or deletion prevention for this private repository.
+The owner explicitly declines a paid plan and accepts that limitation.
+
+The procedural fallback requires all work to use PRs, manual confirmation that
+`governance` and `swift` passed on the final head, and squash merge. Local
+hooks and passing Actions are useful evidence but are not equivalent to server
+enforcement. Automation must never claim `main` is protected or change billing
+or visibility. ISSUE-013/BC-016 remain `wont-fix` so the accepted risk stays
+visible.
+
+## Push-to-main validation
+
+PR checks compare the final head against the exact PR base SHA. A push to
+`main` compares the new commit against `github.event.before`; it must not run
+the one-time `--all` baseline mode. Treating the whole repository as newly
+added would revalidate accepted immutable history against the latest digest
+and would require every strategic CHG to appear in every design document.
+The `--all` mode is reserved for establishing a new repository baseline.
+
 ## Release gate
 
 No version tag or Release is created until required automatic and device cases pass, all release artifacts have verified checksums, signing/DMG validation succeeds, and every release-blocking high-priority ISSUE is closed.
@@ -21,4 +82,10 @@ No version tag or Release is created until required automatic and device cases p
 | Date | CHG | Revision |
 | --- | --- | --- |
 | 2026-07-23 | CHG-20260723-001 | Established evidence layers, digest freshness and immutable reruns. |
-
+| 2026-07-23 | CHG-20260723-002 | Pinned the hosted Swift job to macOS 15/Xcode 16.4 and required toolchain identity output. |
+| 2026-07-23 | CHG-20260723-003 | Corrected dot-path normalization so hooks, workflows and root dotfiles invalidate stale TR evidence. |
+| 2026-07-23 | CHG-20260723-004 | Declared Python 3.13 and pinned Pillow for hosted package/asset validation. |
+| 2026-07-23 | CHG-20260723-005 | Bound immutability to records accepted by protected main while allowing evidence refinement inside an unmerged PR. |
+| 2026-07-23 | CHG-20260723-006 | Applied available squash-only merge settings and made private-repository protection availability an explicit blocking gate. |
+| 2026-07-23 | CHG-20260723-007 | Recorded the owner's permanent no-paid-plan decision and procedural unprotected-main policy. |
+| 2026-07-23 | CHG-20260723-008 | Changed push-to-main governance from full-baseline validation to the exact pushed diff. |
