@@ -9,12 +9,16 @@ final class PetWindowController: NSWindowController {
     private var animationWatchdog: Timer?
     private var eventMonitors: [Any] = []
     private var screenObserver: NSObjectProtocol?
-    private var behavior = BehaviorEngine()
-    private var physics = PetPhysics()
-    private var player = AnimationPlayer()
+    /// Core behavior, animation, physics and package identity live together;
+    /// this controller only adapts AppKit input, clocks and window effects.
+    private var runtime = PetRuntimeState(
+        replacing: 0,
+        contract: .standard,
+        position: .init()
+    )
     private var manifest: PetManifest?
     private var packageRoot: URL?
-    private var packageContract = PetPackageContract.standard
+    private var packageContract: PetPackageContract { runtime.contract }
     private var sessionGeneration: UInt64 = 0
     private var lastTimestamp: CFTimeInterval = CACurrentMediaTime()
     private var lastPhysicsTimestamp: CFTimeInterval = CACurrentMediaTime()
@@ -113,7 +117,7 @@ final class PetWindowController: NSWindowController {
 
         manifest = imported.manifest
         packageRoot = imported.rootURL
-        packageContract = nextContract
+        runtime.setContract(nextContract)
         canvasLayout = PetCanvasLayout(frames: frames, margin: 16)
         resizeWindowForCanvas(preserving: previousAnchor)
         if previousAnchor == nil { placeOnVisibleScreen() }
@@ -141,15 +145,15 @@ final class PetWindowController: NSWindowController {
             shouldInterruptMotion = true
         default: shouldInterruptMotion = false
         }
-        if !shouldInterruptMotion, abs(physics.velocity.x) >= 8 {
+        if !shouldInterruptMotion, abs(runtime.physics.velocity.x) >= 8 {
             pendingActivityEvent = event
             return
         }
-        if shouldInterruptMotion, behavior.active.priority < .grabbedOrThrown {
+        if shouldInterruptMotion, runtime.behavior.active.priority < .grabbedOrThrown {
             roamUntil = 0
             roamTargetX = nil
             pointerChaseIsActive = false
-            physics.velocity.x = 0
+            runtime.setHorizontalVelocity(0)
             // Do not let a roam window expire invisibly while a short system
             // reaction owns the state machine. Resume autonomy soon afterwards.
         }
@@ -165,7 +169,7 @@ final class PetWindowController: NSWindowController {
             y: floorWindowOriginY(in: area)
         )
         window.setFrameOrigin(origin)
-        physics.position = .init(x: origin.x, y: origin.y)
+        runtime.setPosition(.init(x: origin.x, y: origin.y))
     }
 
     private func keepPetVisible() {
@@ -176,7 +180,7 @@ final class PetWindowController: NSWindowController {
         let floorY = floorWindowOriginY(in: area)
         let y = min(max(window.frame.minY, floorY), max(floorY, area.maxY - window.frame.height))
         window.setFrameOrigin(NSPoint(x: x, y: y))
-        physics.position = .init(x: x, y: y)
+        runtime.setPosition(.init(x: x, y: y))
     }
 
     private func updateAutonomyContext(for event: PetEvent) {
@@ -231,7 +235,7 @@ final class PetWindowController: NSWindowController {
                 x: worldAnchor.x - canvasLayout.anchorFromTop.x * scale,
                 y: canvasLayout.windowOriginY(placingAnchorAt: worldAnchor.y, scale: scale)
             ))
-            physics.position = .init(x: window.frame.minX, y: window.frame.minY)
+            runtime.setPosition(.init(x: window.frame.minX, y: window.frame.minY))
         }
     }
 
@@ -317,10 +321,10 @@ final class PetWindowController: NSWindowController {
             shooRunUntil = now + 1.25
             nextMouseInterestAt = shooCooldownUntil + Double.random(in: 20...50)
             dispatch(moveRight ? .shooRight : .shooLeft, source: "pointer-shoo")
-            if behavior.lastDecision == .ignoredUnavailable {
+            if runtime.behavior.lastDecision == .ignoredUnavailable {
                 shooRunUntil = 0
             } else {
-                physics.velocity.x = moveRight ? 280 : -280
+                runtime.setHorizontalVelocity(moveRight ? 280 : -280)
             }
         case .pet(let region, let lockedLeft):
             recognizedBodyGesture = true
@@ -355,20 +359,20 @@ final class PetWindowController: NSWindowController {
                     } else {
                         dispatch(movingRight ? .pointerWalkRight : .pointerWalkLeft, source: "cat-visits-pointer")
                     }
-                    if ["walkLeft", "walkRight", "runLeft", "runRight"].contains(behavior.active.animation) {
-                        physics.velocity.x += (desiredVelocity - physics.velocity.x) * 0.22
+                    if ["walkLeft", "walkRight", "runLeft", "runRight"].contains(runtime.behavior.active.animation) {
+                        runtime.blendHorizontalVelocity(toward: desiredVelocity, factor: 0.22)
                     } else {
-                        physics.velocity.x *= 0.72
+                        runtime.multiplyHorizontalVelocity(by: 0.72)
                     }
                 } else {
                     pointerChaseIsActive = false
                     pointerDesiredVelocity = 0
-                    physics.velocity.x *= 0.72
+                    runtime.multiplyHorizontalVelocity(by: 0.72)
                 }
             } else {
                 pointerChaseIsActive = false
                 pointerDesiredVelocity = 0
-                physics.velocity.x *= 0.72
+                runtime.multiplyHorizontalVelocity(by: 0.72)
                 gazeTrackingUntil = max(gazeTrackingUntil, now + 0.9)
                 gazeUntil = max(gazeUntil, gazeTrackingUntil + 1.6)
                 updateLookTarget(pointer: point, center: NSPoint(x: window.frame.midX, y: window.frame.midY))
@@ -419,26 +423,26 @@ final class PetWindowController: NSWindowController {
         } else {
             velocity = .init()
         }
-        if let origin = window?.frame.origin { physics.position = .init(x: origin.x, y: origin.y) }
+        if let origin = window?.frame.origin { runtime.setPosition(.init(x: origin.x, y: origin.y)) }
         let releaseSpeed = hypot(velocity.x, velocity.y)
         let area = (window?.screen ?? NSScreen.main)?.visibleFrame
-        let floorY = area.map { floorWindowOriginY(in: $0) } ?? physics.position.y
+        let floorY = area.map { floorWindowOriginY(in: $0) } ?? runtime.physics.position.y
         switch PetReleasePolicy.classify(
             speed: releaseSpeed,
-            heightAboveFloor: max(0, physics.position.y - floorY)
+            heightAboveFloor: max(0, runtime.physics.position.y - floorY)
         ) {
         case .placed:
-            physics.velocity = .init(x: velocity.x * 0.2, y: min(0, velocity.y * 0.2))
-            physics.position.y = floorY
-            physics.velocity.y = 0
+            runtime.setVelocity(.init(x: velocity.x * 0.2, y: min(0, velocity.y * 0.2)))
+            runtime.setPositionY(floorY)
+            runtime.setVelocity(.init(x: runtime.physics.velocity.x, y: 0))
             dispatch(.landed, source: "drag-placed-on-floor")
         case .dropped:
-            physics.velocity = .init(x: velocity.x * 0.2, y: min(0, velocity.y * 0.2))
+            runtime.setVelocity(.init(x: velocity.x * 0.2, y: min(0, velocity.y * 0.2)))
             // A gentle drop is still airborne. Playing landing here used to
             // restart landing when the real impact arrived.
-            dispatch(.thrown(velocity: physics.velocity), source: "drag-dropped")
+            dispatch(.thrown(velocity: runtime.physics.velocity), source: "drag-dropped")
         case .thrown:
-            physics.velocity = velocity
+            runtime.setVelocity(velocity)
             dispatch(.thrown(velocity: velocity), source: "drag-thrown")
         }
     }
@@ -477,14 +481,11 @@ final class PetWindowController: NSWindowController {
         updateAmbientBehavior(timestamp: timestamp)
         synchronizeLocomotion(timestamp: timestamp, deltaTime: dt)
         updateDisplayLinkRate()
-        player.transition(to: behavior.active.animation)
-        if let animation = manifest?.animation(named: player.animationID) {
-            _ = player.advance(deltaTime: dt, animation: animation)
-            if player.isFinished(animation: animation) {
-                dispatch(.animationFinished(animation.id), source: "animation-finished")
-                if behavior.active.animation == animation.id {
-                    player.restart()
-                }
+        if let manifest,
+           let finishedAnimation = runtime.synchronizeAnimation(with: manifest, deltaTime: dt) {
+            dispatch(.animationFinished(finishedAnimation), source: "animation-finished")
+            if runtime.behavior.active.animation == finishedAnimation {
+                runtime.restartAnimation(ifCurrent: finishedAnimation)
             }
         }
         updateRenderedFrame()
@@ -496,26 +497,26 @@ final class PetWindowController: NSWindowController {
         if !isDragging, let screen = window?.screen ?? NSScreen.main, let window {
             let area = screen.visibleFrame
             let floorY = floorWindowOriginY(in: area)
-            if physics.step(deltaTime: dt, floorY: floorY, horizontalBounds: area.minX...(area.maxX - window.frame.width)) {
+            if runtime.stepPhysics(deltaTime: dt, floorY: floorY, horizontalBounds: area.minX...(area.maxX - window.frame.width)) {
                 dispatch(.landed, source: "physics-impact")
             }
             let rightEdge = area.maxX - window.frame.width
-            if abs(physics.velocity.x) < 80 {
-                if abs(physics.position.x - area.minX) < 12 {
-                    physics.position.x = area.minX
-                    physics.velocity.x = 0
-                } else if abs(physics.position.x - rightEdge) < 12 {
-                    physics.position.x = rightEdge
-                    physics.velocity.x = 0
+            if abs(runtime.physics.velocity.x) < 80 {
+                if abs(runtime.physics.position.x - area.minX) < 12 {
+                    runtime.setPositionX(area.minX)
+                    runtime.setHorizontalVelocity(0)
+                } else if abs(runtime.physics.position.x - rightEdge) < 12 {
+                    runtime.setPositionX(rightEdge)
+                    runtime.setHorizontalVelocity(0)
                 }
             }
-            window.setFrameOrigin(NSPoint(x: physics.position.x, y: physics.position.y))
+            window.setFrameOrigin(NSPoint(x: runtime.physics.position.x, y: runtime.physics.position.y))
         }
     }
 
     private func updateDisplayLinkRate() {
-        let shouldThrottle = !isDragging && behavior.active.priority == .idle &&
-            abs(physics.velocity.x) < 1 && abs(physics.velocity.y) < 1
+        let shouldThrottle = !isDragging && runtime.behavior.active.priority == .idle &&
+            abs(runtime.physics.velocity.x) < 1 && abs(runtime.physics.velocity.y) < 1
         guard shouldThrottle != displayLinkIsThrottled else { return }
         displayLinkIsThrottled = shouldThrottle
         displayLink?.preferredFrameRateRange = shouldThrottle
@@ -527,7 +528,7 @@ final class PetWindowController: NSWindowController {
         guard !isDragging else { return }
         if timestamp >= nextGazeAt,
            timestamp >= shooCooldownUntil,
-           behavior.active.priority == .idle,
+           runtime.behavior.active.priority == .idle,
            roamUntil <= timestamp,
            mouseInterestUntil <= timestamp {
             gazeTrackingUntil = timestamp + Double.random(in: 1.2...2.2)
@@ -545,7 +546,7 @@ final class PetWindowController: NSWindowController {
             mouseInterestUntil = timestamp + Double.random(in: 5...9)
             nextMouseInterestAt = mouseInterestUntil + Double.random(in: 45...110)
         }
-        let autonomyAvailable = behavior.active.priority == .idle &&
+        let autonomyAvailable = runtime.behavior.active.priority == .idle &&
             roamUntil <= timestamp && mouseInterestUntil <= timestamp
         if let cue = autonomyScheduler.nextCue(
             at: timestamp,
@@ -561,12 +562,12 @@ final class PetWindowController: NSWindowController {
                 scheduleRoam(timestamp: timestamp, run: run, moveRight: moveRight)
             }
         }
-        if roamUntil > timestamp, mouseInterestUntil <= timestamp, behavior.active.priority <= .autonomous {
-            if let target = roamTargetX, abs(target - physics.position.x) < 28 {
+        if roamUntil > timestamp, mouseInterestUntil <= timestamp, runtime.behavior.active.priority <= .autonomous {
+            if let target = roamTargetX, abs(target - runtime.physics.position.x) < 28 {
                 roamUntil = timestamp
                 roamTargetX = nil
             } else {
-                if let target = roamTargetX { roamDirection = target > physics.position.x ? 1 : -1 }
+                if let target = roamTargetX { roamDirection = target > runtime.physics.position.x ? 1 : -1 }
                 if roamIsRunning {
                     dispatch(roamDirection > 0 ? .autonomousRunRight : .autonomousRunLeft, source: "autonomous-roam")
                 } else {
@@ -574,11 +575,11 @@ final class PetWindowController: NSWindowController {
                 }
                 // Pose bridges own the body before locomotion starts. Do not
                 // slide the window while sitToStand is still on screen.
-                if ["walkLeft", "walkRight", "runLeft", "runRight"].contains(behavior.active.animation) {
+                if ["walkLeft", "walkRight", "runLeft", "runRight"].contains(runtime.behavior.active.animation) {
                     let desired = (roamIsRunning ? 210.0 : 82.0) * roamDirection
-                    physics.velocity.x += (desired - physics.velocity.x) * 0.10
+                    runtime.blendHorizontalVelocity(toward: desired, factor: 0.10)
                 } else {
-                    physics.velocity.x *= 0.72
+                    runtime.multiplyHorizontalVelocity(by: 0.72)
                 }
             }
         }
@@ -594,14 +595,14 @@ final class PetWindowController: NSWindowController {
         let upper = max(lower, area.maxX - window.frame.width)
         let span = max(upper - lower, 1)
         var target = moveRight ? upper - span * 0.08 : lower + span * 0.08
-        if abs(target - physics.position.x) < span * 0.28 {
+        if abs(target - runtime.physics.position.x) < span * 0.28 {
             target = moveRight ? lower + span * 0.08 : upper - span * 0.08
         }
         roamTargetX = target
-        roamDirection = target > physics.position.x ? 1 : -1
+        roamDirection = target > runtime.physics.position.x ? 1 : -1
         roamIsRunning = run
         let speed = roamIsRunning ? 210.0 : 82.0
-        roamUntil = timestamp + min(12, max(4, abs(target - physics.position.x) / speed + 1))
+        roamUntil = timestamp + min(12, max(4, abs(target - runtime.physics.position.x) / speed + 1))
     }
 
     private func pointerRegion(at point: NSPoint, in frame: NSRect) -> PointerBodyRegion {
@@ -625,13 +626,13 @@ final class PetWindowController: NSWindowController {
 
     func previewAnimation(_ id: String) {
         guard manifest?.animations.contains(where: { $0.id == id }) == true else { return }
-        physics.velocity.x = 0
+        runtime.setHorizontalVelocity(0)
         dispatch(.previewAnimation(id), source: "preview-menu")
     }
 
     var currentActionStatus: String {
-        let count = manifest?.animation(named: player.animationID)?.frames.count ?? 0
-        return "\(player.animationID) \(min(player.frameIndex + 1, max(count, 1)))/\(count)"
+        let count = manifest?.animation(named: runtime.player.animationID)?.frames.count ?? 0
+        return "\(runtime.player.animationID) \(min(runtime.player.frameIndex + 1, max(count, 1)))/\(count)"
     }
 
     var currentPackageVersion: String { manifest?.assetVersion ?? "兼容包" }
@@ -641,9 +642,9 @@ final class PetWindowController: NSWindowController {
     var diagnosticsLogURL: URL? { diagnostics.logURL }
 
     private func dispatch(_ event: PetEvent, source: String) {
-        let previous = behavior.active.animation
-        let active = behavior.handle(event)
-        let decision = behavior.lastDecision
+        let previous = runtime.behavior.active.animation
+        let active = runtime.reduce(event)
+        let decision = runtime.behavior.lastDecision
         // A loop such as roam refreshes its expiry at 30 Hz. Logging those
         // maintenance samples hid the actual trigger chain and filled the 2 MB
         // file in under a minute. State changes and rejected physical-period
@@ -661,14 +662,14 @@ final class PetWindowController: NSWindowController {
                 "decision": decision.rawValue,
                 "previous": previous,
                 "active": active.animation,
-                "queued": String(behavior.queuedActionCount),
-                "frame": String(player.frameIndex + 1),
-                "petX": String(format: "%.0f", physics.position.x),
-                "petY": String(format: "%.0f", physics.position.y),
-                "velocityX": String(format: "%.0f", physics.velocity.x),
-                "velocityY": String(format: "%.0f", physics.velocity.y),
+                "queued": String(runtime.behavior.queuedActionCount),
+                "frame": String(runtime.player.frameIndex + 1),
+                "petX": String(format: "%.0f", runtime.physics.position.x),
+                "petY": String(format: "%.0f", runtime.physics.position.y),
+                "velocityX": String(format: "%.0f", runtime.physics.velocity.x),
+                "velocityY": String(format: "%.0f", runtime.physics.velocity.y),
             ]
-            if let impact = physics.lastImpactVelocityY {
+            if let impact = runtime.physics.lastImpactVelocityY {
                 fields["impactVelocityY"] = String(format: "%.0f", impact)
             }
             fields.merge(event.diagnosticFields) { _, new in new }
@@ -703,7 +704,7 @@ final class PetWindowController: NSWindowController {
     /// 位置移动和腿部动作必须来自同一个状态。之前行为过期后横向惯性仍然存在，
     /// 就会出现猫保持 idle/侧身僵直姿势却在桌面上滑行。
     private func synchronizeLocomotion(timestamp: CFTimeInterval, deltaTime: CFTimeInterval) {
-        guard !isDragging, behavior.active.priority < .grabbedOrThrown else { return }
+        guard !isDragging, runtime.behavior.active.priority < .grabbedOrThrown else { return }
 
         let isShooing = shooRunUntil > timestamp
         let isVisitingPointer = mouseInterestUntil > timestamp && pointerChaseIsActive
@@ -711,19 +712,19 @@ final class PetWindowController: NSWindowController {
         let isActivelyMoving = isShooing || isVisitingPointer || isRoaming
 
         if isVisitingPointer,
-           ["walkLeft", "walkRight", "runLeft", "runRight"].contains(behavior.active.animation),
+           ["walkLeft", "walkRight", "runLeft", "runRight"].contains(runtime.behavior.active.animation),
            abs(pointerDesiredVelocity) >= 8 {
-            physics.velocity.x += (pointerDesiredVelocity - physics.velocity.x) * 0.12
+            runtime.blendHorizontalVelocity(toward: pointerDesiredVelocity, factor: 0.12)
         }
 
         if !isActivelyMoving {
             pointerDesiredVelocity = 0
             // 主动行为结束后快速、平滑地刹停，避免残余惯性造成“站着滑”。
-            physics.velocity.x *= pow(0.78, deltaTime * 60)
-            if abs(physics.velocity.x) < 8 { physics.velocity.x = 0 }
+            runtime.multiplyHorizontalVelocity(by: pow(0.78, deltaTime * 60))
+            if abs(runtime.physics.velocity.x) < 8 { runtime.setHorizontalVelocity(0) }
         }
 
-        guard abs(physics.velocity.x) >= 8 else {
+        guard abs(runtime.physics.velocity.x) >= 8 else {
             pointerChaseIsActive = false
             if let pendingActivityEvent {
                 self.pendingActivityEvent = nil
@@ -732,8 +733,8 @@ final class PetWindowController: NSWindowController {
             return
         }
 
-        let movingRight = physics.velocity.x > 0
-        if isShooing || (isVisitingPointer && abs(physics.velocity.x) >= 175) {
+        let movingRight = runtime.physics.velocity.x > 0
+        if isShooing || (isVisitingPointer && abs(runtime.physics.velocity.x) >= 175) {
             dispatch(movingRight ? .pointerChaseRight : .pointerChaseLeft, source: "locomotion-sync")
         } else if isVisitingPointer {
             dispatch(movingRight ? .pointerWalkRight : .pointerWalkLeft, source: "locomotion-sync")
@@ -744,10 +745,10 @@ final class PetWindowController: NSWindowController {
     }
 
     private func updateRenderedFrame() {
-        guard let root = packageRoot, let animation = manifest?.animation(named: player.animationID), !animation.frames.isEmpty else { return }
-        let passiveGaze = gazeUntil > CACurrentMediaTime() && behavior.active.priority <= .autonomous
+        guard let root = packageRoot, let animation = manifest?.animation(named: runtime.player.animationID), !animation.frames.isEmpty else { return }
+        let passiveGaze = gazeUntil > CACurrentMediaTime() && runtime.behavior.active.priority <= .autonomous
         if passiveGaze { stepLookDirection() }
-        let frame = animation.frames[min(player.frameIndex, animation.frames.count - 1)]
+        let frame = animation.frames[min(runtime.player.frameIndex, animation.frames.count - 1)]
         let signedLookIndex = lookDirectionIndex <= 8 ? lookDirectionIndex : lookDirectionIndex - 16
         let eyeOffset = passiveGaze
             ? SIMD2<Float>(Float(signedLookIndex) * 1.4, 0)
@@ -779,7 +780,7 @@ final class PetWindowController: NSWindowController {
                 x: oldAnchor.x - canvasLayout.anchorFromTop.x * scale,
                 y: oldAnchor.y - (Double(canvasSize.height) - canvasLayout.anchorFromTop.y) * scale
             ))
-            physics.position = .init(x: window.frame.minX, y: window.frame.minY)
+            runtime.setPosition(.init(x: window.frame.minX, y: window.frame.minY))
         }
         currentFrame = frame
     }
@@ -838,15 +839,12 @@ final class PetWindowController: NSWindowController {
 
     private func resetSessionState(now: CFTimeInterval) {
         let origin = window?.frame.origin ?? .zero
-        let core = PetSessionCoreState(
+        runtime = PetRuntimeState(
             replacing: sessionGeneration,
             contract: packageContract,
             position: .init(x: origin.x, y: origin.y)
         )
-        sessionGeneration = core.generation
-        behavior = core.behavior
-        player = core.player
-        physics = core.physics
+        sessionGeneration = runtime.generation
         lastTimestamp = now
         lastPhysicsTimestamp = now
         dragSamples.removeAll()
