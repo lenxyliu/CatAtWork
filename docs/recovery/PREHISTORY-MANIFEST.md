@@ -1,16 +1,18 @@
 # Prehistory recovery manifest — 2026-07-23
 
-- CHG: CHG-20260723-001
+- CHG: CHG-20260723-001, CHG-20260723-009
 - ISSUE: ISSUE-005
 - Intended private Release: `prehistory-2026-07-23`
 - Local recovery root: `/Users/oops/Documents/CatAtWork-Recovery-2026-07-23`
 - Remote repository: `https://github.com/lenxyliu/CatAtWork` (private; created 2026-07-23)
-- Remote upload: pending
-- Remote download verification: pending
-- Cleanup authorization: **not granted**
-- Git LFS prerequisite: v3.7.0 installed at `/Users/oops/.local/bin/git-lfs`; repository-local initialization pending clean Git replacement
+- Remote upload: complete — `https://github.com/lenxyliu/CatAtWork/releases/tag/prehistory-2026-07-23`
+- Remote download verification: complete — TR-RECOVERY-20260723-002
+- Cleanup authorization: granted by repository owner and executed 2026-07-23
+- Git LFS: v3.7.0 installed at `/Users/oops/.local/bin/git-lfs`; clean repository initialized and verified
 
-No `.git`, `.build`, `Build`, snapshot or DMG may be removed while either remote field is pending.
+The cleanup gate is closed. The frozen recovery root, nine Assets archives,
+seven DMGs and remote Release remain retention artifacts and must not be
+deleted as routine workspace cleanup.
 
 ## Frozen legacy Git
 
@@ -79,9 +81,51 @@ shasum -a 256 "/path/to/downloaded/猫上班了-1.0.3-构建8-抛掷动画回退
 ## Remote round-trip checklist
 
 - [x] Create private GitHub repository.
-- [ ] Create private Release/tag `prehistory-2026-07-23` without calling it a product release.
-- [ ] Upload nine Assets ZIPs and seven DMGs (plus checksum files/manifests).
-- [ ] Record repository and Release URLs in a new recovery verification TR.
-- [ ] Download at least the oldest, latest, and largest Assets archives plus build 8 DMG into a new temporary directory.
-- [ ] Verify byte sizes and SHA-256 against this manifest.
-- [ ] Only then present exact local `.git`, `.build`, `Build`, duplicate package, and recovery-retention targets for explicit cleanup approval.
+- [x] Create private Release/tag `prehistory-2026-07-23` without calling it a product release.
+- [x] Upload nine Assets ZIPs and seven DMGs.
+- [x] Record repository and Release URLs in TR-RECOVERY-20260723-002.
+- [x] Download oldest, latest and largest Assets archives plus build 8 DMG into a new temporary directory.
+- [x] Verify byte sizes and SHA-256 against this manifest.
+- [x] Present exact cleanup targets and receive explicit owner approval.
+- [x] Execute cleanup and verify clean Git/LFS status.
+
+## Remote verification result
+
+The private prerelease contains 16 attachments totaling 3,759,197,559 bytes.
+GitHub's server-reported SHA-256 digest for every attachment matched its local
+source. The representative round-trip directory
+`/private/tmp/CatAtWork-Release-Roundtrip-20260723` contained:
+
+- oldest Assets snapshot `20260721-201646`;
+- largest snapshot `20260723-010114`;
+- latest/current snapshot `20260723-101214`;
+- build 8 DMG.
+
+All four downloaded hashes matched. All three ZIPs passed `unzip -tqq`.
+
+## Authorized cleanup result
+
+Before deletion, checksum-mode `rsync --dry-run` reported no content
+difference between workspace `.git` and the frozen `legacy-git` backup.
+
+| Exact workspace target | Before | Result |
+| --- | ---: | --- |
+| `.git` legacy duplicate | 2,302,436 KiB | deleted; replaced by 158 MiB clean `.git` |
+| `.build` | 717,740 KiB | deleted; regenerable |
+| `Build` | 754,524 KiB | deleted; regenerable |
+| `Resources/DefaultPets` | 78,724 KiB | deleted; 34 files were byte-identical to the retained runtime package |
+
+The duplicate-package aggregate SHA-256 was
+`fed6c517ce352b00cb97479a922d897c77417a6f4f5c1110c0e874463b2118b8`
+for both trees. The retained runtime source is
+`Sources/CatAtWork/Resources/DefaultPet.catpet`.
+
+Post-cleanup checks:
+
+- local `main` and `origin/main` both resolve to
+  `340251a25440a2db427e11d247aa3dcab44dd34c`;
+- worktree and Git LFS status are clean;
+- `git fsck --full` reports no errors;
+- `.githooks` and the repository-scoped SSH deploy-key configuration remain
+  active;
+- frozen `legacy-git` remains 2.2 GiB outside the workspace.
