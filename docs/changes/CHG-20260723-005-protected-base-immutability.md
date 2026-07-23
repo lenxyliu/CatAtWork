@@ -9,7 +9,7 @@
 - BC: BC-013
 - ADR: ADR-0007
 - Design: TEST-AND-RELEASE
-- TR: TR-CI-20260723-003
+- TR: TR-CI-20260723-003, TR-CI-20260723-004
 
 ## Purpose
 
@@ -49,7 +49,8 @@ retain strict behavior unless they explicitly provide a protected set.
 
 TR-CI-20260723-003 records 12 passing governance fixtures, actual staged
 validation against `origin/main`, Swift build/tests and package validation
-for the final governed digest.
+for the final governed digest. TR-CI-20260723-004 records the authoritative
+hosted PR-base validation.
 
 ## Rollback
 
@@ -61,3 +62,5 @@ boundary exists.
 
 - 2026-07-23: implemented after the first Pillow-provisioning push exposed
   the lifecycle deadlock.
+- 2026-07-23: hosted governance passed against the exact PR base in Actions
+  run `29985577013`.

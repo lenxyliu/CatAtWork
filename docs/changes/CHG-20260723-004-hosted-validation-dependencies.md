@@ -1,6 +1,6 @@
 # CHG-20260723-004 — Provision hosted image-validation dependencies
 
-- Status: fixed-unverified
+- Status: complete
 - Change-Type: fix
 - Strategic-Change: yes
 - Owner: repository maintainers
@@ -9,7 +9,7 @@
 - BC: BC-012
 - ADR: ADR-0006
 - Design: TEST-AND-RELEASE
-- TR: TR-CI-20260723-002, TR-CI-20260723-003
+- TR: TR-CI-20260723-002, TR-CI-20260723-003, TR-CI-20260723-004
 
 ## Purpose
 
@@ -45,7 +45,7 @@ Python distribution cache and PyPI.
 
 TR-CI-20260723-002 records local validation with the developer environment
 and the final governed digest. Hosted Python 3.13/Pillow 12.3.0 verification
-is required before ISSUE-009 can become `fixed`.
+is recorded by TR-CI-20260723-004.
 TR-CI-20260723-003 refreshes local high-frame, source and Swift evidence after
 the governance checker changed.
 
@@ -60,3 +60,5 @@ ADR/CHG if setup-python or Pillow must change.
 - 2026-07-23: opened after hosted Pillow import failure; rerun pending.
 - 2026-07-23: linked fresh TR-CI-20260723-003 without overwriting the earlier
   dependency-resolution execution.
+- 2026-07-23: run `29985577013` installed the exact dependency set and passed
+  hosted high-frame validation; ISSUE-009 is verified fixed.
