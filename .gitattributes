@@ -1,0 +1,17 @@
+# Production raster assets must enter Git through LFS. Install Git LFS before
+# staging these paths; the clean baseline must never contain full PNG/ICNS blobs.
+Assets/CatAtWork/frames/**/*.png filter=lfs diff=lfs merge=lfs -text
+Assets/CatAtWork/identity/**/*.png filter=lfs diff=lfs merge=lfs -text
+Assets/CatAtWork/repairs/**/*.png filter=lfs diff=lfs merge=lfs -text
+Assets/CatAtWork/app-icon/**/*.png filter=lfs diff=lfs merge=lfs -text
+Sources/CatAtWork/Resources/**/*.png filter=lfs diff=lfs merge=lfs -text
+Sources/CatAtWork/Resources/**/*.icns filter=lfs diff=lfs merge=lfs -text
+
+# Stable line endings for executable and governance files.
+*.sh text eol=lf
+*.py text eol=lf
+*.swift text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+

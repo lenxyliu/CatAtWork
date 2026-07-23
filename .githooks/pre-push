@@ -1,0 +1,21 @@
+#!/bin/sh
+set -eu
+
+repo_root=$(git rev-parse --show-toplevel)
+
+if git rev-parse --verify --quiet refs/remotes/origin/main >/dev/null; then
+  python3 -B "$repo_root/Scripts/check_governance.py" --base refs/remotes/origin/main
+else
+  python3 -B "$repo_root/Scripts/check_governance.py" --all
+fi
+
+if command -v git-lfs >/dev/null 2>&1; then
+  LFS_BIN=$(command -v git-lfs)
+elif [ -x /Users/oops/.local/bin/git-lfs ]; then
+  LFS_BIN=/Users/oops/.local/bin/git-lfs
+else
+  printf >&2 "Git LFS is required. Install it before pushing production assets.\n"
+  exit 2
+fi
+
+"$LFS_BIN" pre-push "$@"

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleIconFile</key>
+	<string>AppIcon</string>
+    <key>CFBundleDevelopmentRegion</key><string>zh_CN</string>
+    <key>CFBundleDisplayName</key><string>猫上班了</string>
+    <key>CFBundleExecutable</key><string>CatAtWork</string>
+    <key>CFBundleIdentifier</key><string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+    <key>CFBundleName</key><string>猫上班了</string>
+    <key>CFBundleShortVersionString</key><string>1.0.3</string>
+    <key>CFBundleVersion</key><string>8</string>
+    <key>LSMinimumSystemVersion</key><string>14.0</string>
+    <key>LSUIElement</key><true/>
+    <key>NSAppleEventsUsageDescription</key><string>仅在你启用后读取 Apple Music 或 Spotify 的播放/暂停状态，让小猫随音乐回应；不会读取歌曲名称。</string>
+    <key>NSHumanReadableCopyright</key><string>© 2026 猫上班了</string>
+    <key>SUEnableAutomaticChecks</key><true/>
+    <key>SUFeedURL</key><string>$(SPARKLE_FEED_URL)</string>
+    <key>SUPublicEDKey</key><string>$(SPARKLE_PUBLIC_ED_KEY)</string>
+</dict>
+</plist>

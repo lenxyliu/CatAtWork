@@ -1,0 +1,37 @@
+# SwiftPM / Xcode build products
+.build/
+Build/
+DerivedData/
+*.dSYM/
+*.dSYM.zip
+*.xcarchive/
+
+# Packaged applications and distributables are release artifacts, not source
+*.app/
+*.dmg
+*.pkg
+
+# Generated and review-only artwork is archived in the prehistory Release
+Assets/CatAtWork/generated/
+Assets/CatAtWork/qa/
+
+# Retired duplicate of the canonical runtime package. The only runtime source
+# is Sources/CatAtWork/Resources/DefaultPet.catpet.
+Resources/DefaultPets/
+
+# Local tool output
+Scripts/__pycache__/
+*.py[cod]
+.DS_Store
+.swiftpm/
+.idea/
+.vscode/
+
+# Local credentials and release configuration
+Config/Release.xcconfig
+*.p12
+*.cer
+*.provisionprofile
+
+# Governance checker scratch output
+.governance-cache/
