@@ -25,7 +25,9 @@ downloads match their manifest hashes; three ZIPs pass extraction tests.
 
 The four owner-approved workspace targets were deleted. Clean `.git` was
 installed, local/remote main match, Git/LFS are clean and fsck passes. The
-frozen recovery root was not removed.
+frozen recovery root was not removed. Main Actions run `29987195764` passed
+incremental governance, Swift build/tests and package validation before this
+audit was proposed.
 
 ## Residual risks
 
