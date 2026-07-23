@@ -12,3 +12,4 @@ The root `ISSUE-CLASSIFICATION.md` is a frozen pre-governance snapshot. Its rows
 | ISSUE-006 | P1 | fixed | Design, defect, badcase and test history can be overwritten or omitted | BC-009; TR-GOVERNANCE-20260723-001 | baseline |
 | ISSUE-007 | P1 | fixed-unverified | Hosted CI selected Swift 5.10 for a Swift tools 6.0 package | BC-010 | `codex/ci-swift6-baseline` |
 | ISSUE-008 | P0 | fixed | Governed dotfiles were silently omitted from test-evidence freshness digests | BC-011; TR-CI-20260723-001 | `codex/ci-swift6-baseline` |
+| ISSUE-009 | P1 | fixed-unverified | Hosted asset validation depended on an undeclared Pillow installation | BC-012 | `codex/ci-swift6-baseline` |

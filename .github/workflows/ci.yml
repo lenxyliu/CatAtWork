@@ -35,10 +35,19 @@ jobs:
       - uses: actions/checkout@v4
         with:
           lfs: true
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: Scripts/requirements-validation.txt
+      - name: Install validation dependencies
+        run: python3 -m pip install --requirement Scripts/requirements-validation.txt
       - name: Toolchain identity
         run: |
           xcodebuild -version
           swift --version
+          python3 --version
+          python3 -c 'import PIL; print("Pillow", PIL.__version__)'
       - name: Swift build
         run: swift build
       - name: Swift unit tests

@@ -27,6 +27,12 @@ must support the `swift-tools-version` declared by `Package.swift`; changing
 the runner or Xcode selection is a strategic release-policy change and
 requires a new CHG, ADR, badcase and fresh TR.
 
+Package/asset validation in the hosted job uses Python 3.13 provisioned by
+`actions/setup-python` and installs the exact versions listed in
+`Scripts/requirements-validation.txt`. The identity step prints Python and
+Pillow versions; validation must not rely on packages that happen to be
+preinstalled on a runner image.
+
 ## Release gate
 
 No version tag or Release is created until required automatic and device cases pass, all release artifacts have verified checksums, signing/DMG validation succeeds, and every release-blocking high-priority ISSUE is closed.
@@ -38,3 +44,4 @@ No version tag or Release is created until required automatic and device cases p
 | 2026-07-23 | CHG-20260723-001 | Established evidence layers, digest freshness and immutable reruns. |
 | 2026-07-23 | CHG-20260723-002 | Pinned the hosted Swift job to macOS 15/Xcode 16.4 and required toolchain identity output. |
 | 2026-07-23 | CHG-20260723-003 | Corrected dot-path normalization so hooks, workflows and root dotfiles invalidate stale TR evidence. |
+| 2026-07-23 | CHG-20260723-004 | Declared Python 3.13 and pinned Pillow for hosted package/asset validation. |

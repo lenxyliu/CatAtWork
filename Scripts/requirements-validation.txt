@@ -1,0 +1,2 @@
+# Runtime dependency for validate_high_frame_pet.py.
+Pillow==12.3.0
