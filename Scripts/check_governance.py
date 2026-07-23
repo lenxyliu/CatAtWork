@@ -114,7 +114,10 @@ def run_git(root: Path, args: Sequence[str], check: bool = True) -> subprocess.C
 
 
 def normalize(path: str) -> str:
-    return path.replace("\\", "/").lstrip("./")
+    normalized = path.replace("\\", "/")
+    while normalized.startswith("./"):
+        normalized = normalized[2:]
+    return normalized.lstrip("/")
 
 
 def is_governed(path: str) -> bool:

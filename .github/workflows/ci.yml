@@ -28,11 +28,17 @@ jobs:
         run: python3 -B -m unittest discover -s Scripts/tests -p 'test_*.py'
 
   swift:
-    runs-on: macos-14
+    runs-on: macos-15
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_16.4.app/Contents/Developer
     steps:
       - uses: actions/checkout@v4
         with:
           lfs: true
+      - name: Toolchain identity
+        run: |
+          xcodebuild -version
+          swift --version
       - name: Swift build
         run: swift build
       - name: Swift unit tests

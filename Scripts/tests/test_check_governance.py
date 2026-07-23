@@ -147,6 +147,24 @@ class GovernanceFixtureTests(unittest.TestCase):
         errors = governance.validate_repository(self.root, self.compliant_changes())
         self.assertTrue(any("no referenced passing TR" in error for error in errors))
 
+    def test_dot_prefixed_governance_paths_are_preserved(self):
+        self.assertEqual(
+            governance.normalize("./.github/workflows/ci.yml"),
+            ".github/workflows/ci.yml",
+        )
+        self.assertTrue(governance.is_governed(".github/workflows/ci.yml"))
+        self.assertTrue(governance.is_governed(".githooks/pre-push"))
+        self.assertTrue(governance.is_governed(".gitignore"))
+
+    def test_dot_prefixed_change_invalidates_digest(self):
+        before = governance.content_digest(self.root)
+        self.write(".github/workflows/ci.yml", "name: first\n")
+        after_create = governance.content_digest(self.root)
+        self.write(".github/workflows/ci.yml", "name: second\n")
+        after_update = governance.content_digest(self.root)
+        self.assertNotEqual(before, after_create)
+        self.assertNotEqual(after_create, after_update)
+
     def test_trivial_label_rejects_executable_change(self):
         errors = governance.validate_repository(
             self.root, [governance.Change("M", "Sources/App.swift")], trivial=True
