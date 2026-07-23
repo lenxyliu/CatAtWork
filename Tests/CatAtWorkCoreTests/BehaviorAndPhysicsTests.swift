@@ -154,6 +154,55 @@ final class BehaviorAndPhysicsTests: XCTestCase {
         XCTAssertEqual(coordinator.active.expiresAt, now.addingTimeInterval(3.8))
     }
 
+    func testQueuedIntentReroutesFromActualPoseAndSelectedPlanIsAtomic() {
+        var engine = BehaviorEngine()
+        let now = Date(timeIntervalSince1970: 525)
+
+        _ = engine.handle(.autonomousWalkRight, now: now)
+        XCTAssertEqual(engine.active.animation, "sitToStand")
+
+        // A later, higher-priority wave cannot split the already-selected
+        // sitToStand -> walkRight plan.
+        _ = engine.handle(.clicked, now: now.addingTimeInterval(0.1))
+        XCTAssertEqual(engine.queuedActionCount, 2)
+        _ = engine.handle(.animationFinished("sitToStand"), now: now.addingTimeInterval(0.2))
+        XCTAssertEqual(engine.active.animation, "walkRight")
+        XCTAssertEqual(engine.pose, .standing)
+
+        // This lower-priority walk is intentionally queued while standing. The
+        // wave wins next and changes the actual pose to seated before it starts.
+        _ = engine.handle(.autonomousWalkLeft, now: now.addingTimeInterval(0.3))
+        _ = engine.handle(.tick(now.addingTimeInterval(1.1)), now: now.addingTimeInterval(1.1))
+        XCTAssertEqual(engine.active.animation, "standToSit")
+
+        _ = engine.handle(.animationFinished("standToSit"), now: now.addingTimeInterval(1.2))
+        XCTAssertEqual(engine.active.animation, "wave")
+        XCTAssertEqual(engine.pose, .seated)
+
+        _ = engine.handle(.animationFinished("wave"), now: now.addingTimeInterval(1.3))
+        XCTAssertEqual(engine.active.animation, "sitToStand")
+        XCTAssertEqual(engine.pose, .seated)
+
+        _ = engine.handle(.animationFinished("sitToStand"), now: now.addingTimeInterval(1.4))
+        XCTAssertEqual(engine.active.animation, "walkLeft")
+        XCTAssertEqual(engine.pose, .standing)
+    }
+
+    func testForcedActionClearsAnAtomicContinuationEvenWhenAnimationMatches() {
+        var coordinator = ActionCoordinator()
+        let bridge = ActiveBehavior(animation: "bridge", priority: .autonomous)
+        let target = ActiveBehavior(animation: "target", priority: .autonomous)
+
+        _ = coordinator.submit(target, planner: { [bridge, $0] })
+        XCTAssertEqual(coordinator.active.animation, "bridge")
+        XCTAssertEqual(coordinator.queuedCount, 1)
+
+        XCTAssertEqual(coordinator.submit(bridge, force: true), .forced)
+        XCTAssertEqual(coordinator.queuedCount, 0)
+        _ = coordinator.finish("bridge")
+        XCTAssertEqual(coordinator.active.animation, "idle")
+    }
+
     func testSixtySecondsWithoutInputSchedulesMicroMotionRoamingAndSleep() {
         var scheduler = AutonomyScheduler(startTime: 0, seed: 42)
         var cues: [AutonomyCue] = []

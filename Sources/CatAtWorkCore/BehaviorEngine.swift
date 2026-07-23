@@ -88,9 +88,14 @@ public struct BehaviorEngine: Sendable {
     @discardableResult
     public mutating func handle(_ event: PetEvent, now: Date = .now) -> ActiveBehavior {
         let expiring = coordinator.active
-        if coordinator.tick(now: now) == .finished {
+        if let expiry = expiring.expiresAt, expiry <= now {
             updatePose(after: expiring.animation)
-            ensureIdlePose(now: now)
+            let pose = currentPose
+            if coordinator.tick(now: now, planner: actionPlanner(from: pose)) == .finished {
+                ensureIdlePose(now: now)
+            }
+        } else {
+            _ = coordinator.tick(now: now)
         }
 
         let request: ActiveBehavior?
@@ -131,7 +136,8 @@ public struct BehaviorEngine: Sendable {
             force = false; request = nil
             if !isGrabbed {
                 updatePose(after: animation)
-                _ = coordinator.finish(animation, now: now)
+                let pose = currentPose
+                _ = coordinator.finish(animation, now: now, planner: actionPlanner(from: pose))
                 ensureIdlePose(now: now)
             }
         case .grabbed:
@@ -180,14 +186,21 @@ public struct BehaviorEngine: Sendable {
             return
         }
 
-        let expectedPose = poseRouter.endPose(for: coordinator.active.animation) ?? currentPose
-        if let targetPose = poseRouter.startPose(for: request.animation), targetPose != expectedPose {
-            for transition in poseRouter.transitions(from: expectedPose, to: targetPose) {
-                let bridge = ActiveBehavior(animation: transition, priority: request.priority)
-                _ = coordinator.submit(bridge, now: now)
+        let pose = currentPose
+        _ = coordinator.submit(request, now: now, planner: actionPlanner(from: pose))
+    }
+
+    private func actionPlanner(from pose: PetPose) -> (ActiveBehavior) -> [ActiveBehavior] {
+        let router = poseRouter
+        return { request in
+            guard let targetPose = router.startPose(for: request.animation), targetPose != pose else {
+                return [request]
             }
+            let bridges = router.transitions(from: pose, to: targetPose).map {
+                ActiveBehavior(animation: $0, priority: request.priority)
+            }
+            return bridges + [request]
         }
-        _ = coordinator.submit(request, now: now)
     }
 
     private mutating func updatePose(after animation: String) {
