@@ -20,7 +20,7 @@ final class MetalTextureResource: @unchecked Sendable {
     }
 }
 
-private final class MetalDeviceBox: @unchecked Sendable {
+final class MetalDeviceBox: @unchecked Sendable {
     let device: any MTLDevice
 
     init(_ device: any MTLDevice) {
@@ -36,11 +36,11 @@ actor MetalTextureCache {
     private var activeGeneration: UInt64
 
     init(
-        device: any MTLDevice,
+        device: MetalDeviceBox,
         byteLimit: Int = MetalTextureCache.defaultByteLimit,
         initialGeneration: UInt64 = 0
     ) {
-        self.device = MetalDeviceBox(device)
+        self.device = device
         storage = AsyncByteBoundedCache(byteLimit: byteLimit)
         activeGeneration = initialGeneration
     }

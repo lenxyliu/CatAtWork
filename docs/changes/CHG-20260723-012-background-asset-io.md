@@ -9,7 +9,7 @@
 - BC: BC-005, BC-006
 - ADR: ADR-0013
 - Design: ASYNC-IO
-- TR: TR-IO-20260723-001, TR-IO-20260723-002, TR-IO-20260723-003, TR-IO-20260723-004
+- TR: TR-IO-20260723-001, TR-IO-20260723-002, TR-IO-20260723-003, TR-IO-20260723-004, TR-IO-20260723-005, TR-IO-20260723-006, TR-IO-20260723-007
 
 ## Purpose
 
@@ -61,9 +61,14 @@ session. CLI validators retain the synchronous inspection primitive.
 TR-IO-20260723-001 preserves the first app-target compile failure caused by a
 missing optional type annotation. TR-IO-20260723-002 preserves the subsequent
 optional-process compile failure in the force-kill fallback. Passing evidence
-is recorded by TR-IO-20260723-004. TR-IO-20260723-003 preserves a
+was recorded by TR-IO-20260723-004. TR-IO-20260723-003 preserves a
 concurrency-test failure that incorrectly assumed which simultaneous waiter
-would reach the actor first.
+would reach the actor first. TR-IO-20260723-005 preserves the hosted Xcode
+16.4 actor-transfer compile failure. TR-IO-20260723-006 records corrected
+content-matched local build, tests, typecheck, package and governance evidence;
+the hosted rerun remains the merge gate. TR-IO-20260723-007 preserves a local
+normal-sandbox attempt rejected by SwiftPM's nested sandbox; it does not replace
+the external-execution pass in TR-IO-20260723-006.
 
 ## Rollback
 
@@ -87,3 +92,9 @@ supersede ADR-0013; do not restore the wait-before-drain process ordering.
   generation-safe import, 128 MiB session texture cache and all regression/
   smoke/governance evidence; ISSUE-003 and BC-005/006 fixed by
   TR-IO-20260723-004.
+- 2026-07-23: PR #7 Xcode 16.4 rejected sending a raw main-actor `MTLDevice`
+  to the cache actor. Reopened the unmerged CHG and returned ISSUE/BC status to
+  fixed-unverified; failure preserved as TR-IO-20260723-005.
+- 2026-07-23: moved `MetalDeviceBox` construction before the actor boundary;
+  full content-matched verification passed in TR-IO-20260723-006 and the CHG
+  returned to complete pending hosted PR checks.

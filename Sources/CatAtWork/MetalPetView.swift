@@ -87,7 +87,7 @@ final class MetalPetView: MTKView, MTKViewDelegate {
             fatalError("Metal is required to run 猫上班了")
         }
         commandQueue = queue
-        textureCache = MetalTextureCache(device: device)
+        textureCache = MetalTextureCache(device: MetalDeviceBox(device))
         super.init(frame: frame, device: device)
         wantsLayer = true
         framebufferOnly = true
