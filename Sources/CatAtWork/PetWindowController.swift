@@ -101,14 +101,18 @@ final class PetWindowController: NSWindowController {
 
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
-    func loadPet(at root: URL) throws {
-        let imported = try PetPackageImporter().inspectDirectory(at: root)
+    func loadPet(at root: URL) async throws {
+        let imported = try await PetPackageImporter().inspectDirectoryAsync(at: root)
+        loadPet(imported)
+    }
+
+    func loadPet(_ imported: ImportedPet) {
         let previousAnchor = manifest == nil ? nil : windowWorldAnchor()
         let nextContract = PetPackageContract(manifest: imported.manifest)
         let frames = imported.manifest.animations.flatMap(\.frames) + imported.manifest.lookDirections.map(\.frame)
 
         manifest = imported.manifest
-        packageRoot = root
+        packageRoot = imported.rootURL
         packageContract = nextContract
         canvasLayout = PetCanvasLayout(frames: frames, margin: 16)
         resizeWindowForCanvas(preserving: previousAnchor)

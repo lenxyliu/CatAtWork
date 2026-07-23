@@ -4,6 +4,11 @@ All user-visible changes are summarized here. Implementation and test evidence l
 
 ## Unreleased
 
+- Package import, validation and texture decoding no longer run on the UI
+  thread. Archive helper output, processing time and package expansion are
+  bounded; repeated frames use a 128 MiB session cache, and stale imports or
+  textures cannot replace the current pet
+  ([CHG-20260723-012](docs/changes/CHG-20260723-012-background-asset-io.md)).
 - Unified custom `.catpet` behavior: missing actions now use documented
   semantic fallbacks or stay unavailable, custom poses and `nextAnimation`
   are honored, pixel density no longer changes desktop size, pet switching

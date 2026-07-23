@@ -2,7 +2,7 @@ import Foundation
 
 @main
 enum PetStoreSmoke {
-    static func main() throws {
+    static func main() async throws {
         guard CommandLine.arguments.count == 3 || CommandLine.arguments.count == 4 else {
             throw NSError(domain: "PetStoreSmoke", code: 2)
         }
@@ -16,7 +16,7 @@ enum PetStoreSmoke {
         let source = URL(fileURLWithPath: CommandLine.arguments[1])
         if expectReservedRejection {
             do {
-                _ = try store.install(from: source)
+                _ = try await store.install(from: source)
                 preconditionFailure("built-in pet ID was accepted as an imported package")
             } catch PetStoreError.reservedBuiltInIdentifier {
                 print("Built-in pet ID rejection smoke test passed")
@@ -25,14 +25,23 @@ enum PetStoreSmoke {
         }
         if CommandLine.arguments.last == "--expect-reject" {
             do {
-                _ = try store.install(from: source)
+                _ = try await store.install(from: source)
                 preconditionFailure("unsafe archive was accepted")
             } catch PetStoreError.unsafeArchiveEntry {
                 print("Unsafe archive rejection smoke test passed")
                 return
             }
         }
-        let imported = try store.install(from: source)
+        if CommandLine.arguments.last == "--expect-link-reject" {
+            do {
+                _ = try await store.install(from: source)
+                preconditionFailure("symbolic-link archive was accepted")
+            } catch PetStoreError.archiveLinkNotAllowed {
+                print("Symbolic-link archive rejection smoke test passed")
+                return
+            }
+        }
+        let imported = try await store.install(from: source)
         precondition(imported.isHighFrame)
         let expectedActions: Set<String> = [
             "idle", "idleEar", "idleTail", "sitToStand", "standToSit", "lieDown", "getUp",

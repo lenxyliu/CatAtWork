@@ -5,9 +5,11 @@ import MetalKit
 @MainActor
 final class MetalPetView: MTKView, MTKViewDelegate {
     private let commandQueue: MTLCommandQueue
-    private let textureLoader: MTKTextureLoader
+    private let textureCache: MetalTextureCache
     private var pipeline: MTLRenderPipelineState!
     private var texture: MTLTexture?
+    private var textureLoadTask: Task<Void, Never>?
+    private var sessionPreparationTask: Task<Void, Never>?
     private var lastFrameURL: URL?
     private var atlasRect: PixelRect?
     private var positionRect = SIMD4<Float>(-1, -1, 1, 1)
@@ -27,7 +29,7 @@ final class MetalPetView: MTKView, MTKViewDelegate {
         didSet {
             guard frameURL != lastFrameURL else { return }
             lastFrameURL = frameURL
-            loadTexture()
+            requestTexture()
         }
     }
 
@@ -64,6 +66,7 @@ final class MetalPetView: MTKView, MTKViewDelegate {
     }
 
     func resetSession(generation: UInt64) {
+        textureLoadTask?.cancel()
         sessionGeneration = generation
         frameURL = nil
         lastFrameURL = nil
@@ -72,6 +75,10 @@ final class MetalPetView: MTKView, MTKViewDelegate {
         positionRect = SIMD4<Float>(-1, -1, 1, 1)
         flipHorizontally = false
         eyeOffsetPixels = .zero
+        let textureCache = textureCache
+        sessionPreparationTask = Task {
+            await textureCache.beginSession(generation: generation)
+        }
         setNeedsDisplay(bounds)
     }
 
@@ -80,7 +87,7 @@ final class MetalPetView: MTKView, MTKViewDelegate {
             fatalError("Metal is required to run 猫上班了")
         }
         commandQueue = queue
-        textureLoader = MTKTextureLoader(device: device)
+        textureCache = MetalTextureCache(device: MetalDeviceBox(device))
         super.init(frame: frame, device: device)
         wantsLayer = true
         framebufferOnly = true
@@ -140,14 +147,32 @@ final class MetalPetView: MTKView, MTKViewDelegate {
         commandBuffer.commit()
     }
 
-    private func loadTexture() {
+    private func requestTexture() {
+        textureLoadTask?.cancel()
         guard let frameURL else { texture = nil; setNeedsDisplay(bounds); return }
-        texture = try? textureLoader.newTexture(URL: frameURL, options: [
-            .SRGB: true,
-            .textureUsage: MTLTextureUsage.shaderRead.rawValue,
-            .origin: MTKTextureLoader.Origin.topLeft.rawValue,
-        ])
-        setNeedsDisplay(bounds)
+        texture = nil
+        let generation = sessionGeneration
+        let preparation = sessionPreparationTask
+        let textureCache = textureCache
+        textureLoadTask = Task { [weak self] in
+            await preparation?.value
+            guard !Task.isCancelled else { return }
+            do {
+                let resource = try await textureCache.texture(
+                    at: frameURL,
+                    sessionGeneration: generation
+                )
+                try Task.checkCancellation()
+                guard let self,
+                      self.sessionGeneration == generation,
+                      self.frameURL == frameURL else { return }
+                self.texture = resource.texture
+                self.setNeedsDisplay(self.bounds)
+            } catch {
+                // Cancellation, invalidation and decode failure all leave the
+                // view transparent; a late result is never published.
+            }
+        }
     }
 
     private func configureTransparentLayer() {

@@ -26,6 +26,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var currentActionItem: NSMenuItem?
     private var packageVersionItem: NSMenuItem?
     private var previewMenu: NSMenu?
+    private var importTask: Task<Void, Never>?
+    private var importGeneration: UInt64 = 0
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         guard let bundleID = Bundle.main.bundleIdentifier else {
@@ -87,8 +89,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         NSApp.setActivationPolicy(.accessory)
         let controller = PetWindowController()
         petWindow = controller
-        loadSelectedOrDefaultPet(into: controller)
         controller.showPet()
+        importGeneration &+= 1
+        let startupGeneration = importGeneration
+        Task { [weak self, weak controller] in
+            guard let self, let controller else { return }
+            await self.loadSelectedOrDefaultPet(
+                into: controller,
+                generation: startupGeneration
+            )
+        }
 
         updateAwarenessServices()
         settingsObserver = NotificationCenter.default.addObserver(
@@ -113,6 +123,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         if let settingsObserver { NotificationCenter.default.removeObserver(settingsObserver) }
         awareness?.stop()
         mediaAwareness?.stop()
+        importTask?.cancel()
     }
 
     private func updateAwarenessServices() {
@@ -267,37 +278,60 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         panel.allowsMultipleSelection = false
         panel.allowedContentTypes = [.folder, .zip, .data]
         guard panel.runModal() == .OK, let url = panel.url else { return }
-        do {
-            let installed = try PetStore().install(from: url)
-            try petWindow?.loadPet(at: installed.rootURL)
-            UserDefaults.standard.set(installed.manifest.id, forKey: "selectedPetID")
-            if !installed.isHighFrame {
+        importTask?.cancel()
+        importGeneration &+= 1
+        let generation = importGeneration
+        importTask = Task { [weak self] in
+            defer {
+                if self?.importGeneration == generation {
+                    self?.importTask = nil
+                }
+            }
+            do {
+                let installed = try await PetStore().install(from: url)
+                try Task.checkCancellation()
+                guard self?.importGeneration == generation else { return }
+                self?.petWindow?.loadPet(installed)
+                UserDefaults.standard.set(installed.manifest.id, forKey: "selectedPetID")
+                if !installed.isHighFrame {
+                    let alert = NSAlert()
+                    alert.messageText = "已安装兼容宠物"
+                    alert.informativeText = "这个宠物包含少于 24 帧的动作，将按原始帧率播放，因此可能不如默认的“猫上班了”流畅。"
+                    alert.alertStyle = .informational
+                    alert.runModal()
+                }
+            } catch is CancellationError {
+                return
+            } catch {
                 let alert = NSAlert()
-                alert.messageText = "已安装兼容宠物"
-                alert.informativeText = "这个宠物包含少于 24 帧的动作，将按原始帧率播放，因此可能不如默认的“猫上班了”流畅。"
-                alert.alertStyle = .informational
+                alert.messageText = "无法导入这个宠物包"
+                alert.informativeText = error.localizedDescription
+                alert.alertStyle = .warning
                 alert.runModal()
             }
-        } catch {
-            let alert = NSAlert(error: error)
-            alert.messageText = "无法导入这个宠物包"
-            alert.runModal()
         }
     }
 
-    private func loadSelectedOrDefaultPet(into controller: PetWindowController) {
+    private func loadSelectedOrDefaultPet(
+        into controller: PetWindowController,
+        generation: UInt64
+    ) async {
         let embeddedRoot = Bundle.module.resourceURL?.appendingPathComponent("DefaultPet.catpet", isDirectory: true)
-        let embeddedManifest = embeddedRoot.flatMap { try? PetPackageImporter().inspectDirectory(at: $0).manifest }
+        let embeddedPet: ImportedPet? = if let embeddedRoot {
+            try? await PetPackageImporter().inspectDirectoryAsync(at: embeddedRoot)
+        } else {
+            nil
+        }
         let selectedID = UserDefaults.standard.string(forKey: "selectedPetID")
 
         // The built-in IP ships with the app and must follow app updates. An old
         // Application Support copy with the same ID previously shadowed every
         // newly bundled frame set forever.
-        if selectedID == nil || selectedID == embeddedManifest?.id {
-            if let embeddedRoot, (try? controller.loadPet(at: embeddedRoot)) != nil {
-                if let id = embeddedManifest?.id { UserDefaults.standard.set(id, forKey: "selectedPetID") }
-                return
-            }
+        if selectedID == nil || selectedID == embeddedPet?.manifest.id, let embeddedPet {
+            guard importGeneration == generation else { return }
+            controller.loadPet(embeddedPet)
+            UserDefaults.standard.set(embeddedPet.manifest.id, forKey: "selectedPetID")
+            return
         }
 
         if let selectedID,
@@ -311,11 +345,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             let installed = support
                 .appendingPathComponent("猫上班了/Pets", isDirectory: true)
                 .appendingPathComponent("\(selectedID).catpet", isDirectory: true)
-            if (try? controller.loadPet(at: installed)) != nil { return }
+            if let imported = try? await PetPackageImporter().inspectDirectoryAsync(at: installed) {
+                guard importGeneration == generation else { return }
+                controller.loadPet(imported)
+                return
+            }
             UserDefaults.standard.removeObject(forKey: "selectedPetID")
         }
-        if let embeddedRoot {
-            try? controller.loadPet(at: embeddedRoot)
+        if let embeddedPet {
+            guard importGeneration == generation else { return }
+            controller.loadPet(embeddedPet)
         }
     }
 }
