@@ -4,6 +4,10 @@ All user-visible changes are summarized here. Implementation and test evidence l
 
 ## Unreleased
 
+- Fixed mixed-priority action queues so every selected action receives legal
+  pose transitions from the pet's actual current pose, without another action
+  splitting the transition from its target
+  ([CHG-20260723-010](docs/changes/CHG-20260723-010-action-dequeue-routing.md)).
 - Repository recovery and traceability baseline is complete: current assets
   use Git LFS, prehistory is preserved in a checksum-verified private Release,
   and disposable local build/history duplicates have been removed.

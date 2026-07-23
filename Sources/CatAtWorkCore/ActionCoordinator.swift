@@ -17,14 +17,37 @@ public struct ActionCoordinator: Sendable {
     public private(set) var active = ActiveBehavior(animation: "idle", priority: .idle)
     public private(set) var lastDecision: ActionDecision = .noChange
     private var queue: [(sequence: UInt64, action: ActiveBehavior)] = []
+    /// Remaining steps in the plan selected for the active intent. These steps
+    /// are atomic and therefore do not re-enter priority arbitration.
+    private var continuation: [ActiveBehavior] = []
     private var sequence: UInt64 = 0
 
     public init() {}
 
     @discardableResult
-    public mutating func submit(_ action: ActiveBehavior, force: Bool = false, now: Date = .now) -> ActionDecision {
+    public mutating func submit(
+        _ action: ActiveBehavior,
+        force: Bool = false,
+        now: Date = .now,
+        planner: (ActiveBehavior) -> [ActiveBehavior] = { [$0] }
+    ) -> ActionDecision {
         guard action.animation != "idle" || active.priority == .idle else {
             lastDecision = .ignoredDuplicate
+            return lastDecision
+        }
+
+        if force {
+            // A system wake/sleep reaction must never tear the cat out of the
+            // user's hand. Physical grab/throw ownership is released only by
+            // the corresponding physical transition.
+            if active.priority == .grabbedOrThrown, action.priority < active.priority {
+                lastDecision = .ignoredDuplicate
+                return lastDecision
+            }
+            queue.removeAll()
+            continuation.removeAll()
+            active = activated(action, now: now)
+            lastDecision = .forced
             return lastDecision
         }
 
@@ -43,20 +66,6 @@ public struct ActionCoordinator: Sendable {
             return lastDecision
         }
 
-        if force {
-            // A system wake/sleep reaction must never tear the cat out of the
-            // user's hand. Physical grab/throw ownership is released only by
-            // the corresponding physical transition.
-            if active.priority == .grabbedOrThrown, action.priority < active.priority {
-                lastDecision = .ignoredDuplicate
-                return lastDecision
-            }
-            queue.removeAll()
-            active = activated(action, now: now)
-            lastDecision = .forced
-            return lastDecision
-        }
-
         // Pointer/system intentions sampled while the cat is held, airborne or
         // visibly recovering from impact are stale by the time that physical
         // chain completes. Queuing them caused the cat to finish landing in a
@@ -69,8 +78,13 @@ public struct ActionCoordinator: Sendable {
         }
 
         if active.priority == .idle {
-            active = activated(action, now: now)
+            startPlan(for: action, now: now, planner: planner)
             lastDecision = .started
+            return lastDecision
+        }
+
+        if continuation.contains(where: { $0.animation == action.animation }) {
+            lastDecision = .ignoredDuplicate
             return lastDecision
         }
 
@@ -90,30 +104,45 @@ public struct ActionCoordinator: Sendable {
     }
 
     @discardableResult
-    public mutating func finish(_ animation: String, now: Date = .now) -> ActionDecision {
+    public mutating func finish(
+        _ animation: String,
+        now: Date = .now,
+        planner: (ActiveBehavior) -> [ActiveBehavior] = { [$0] }
+    ) -> ActionDecision {
         guard active.animation == animation else {
             lastDecision = .noChange
             return lastDecision
         }
-        startNext(now: now)
+        startNext(now: now, planner: planner)
         lastDecision = .finished
         return lastDecision
     }
 
     @discardableResult
-    public mutating func tick(now: Date) -> ActionDecision {
+    public mutating func tick(
+        now: Date,
+        planner: (ActiveBehavior) -> [ActiveBehavior] = { [$0] }
+    ) -> ActionDecision {
         guard let expiry = active.expiresAt, expiry <= now else {
             lastDecision = .noChange
             return lastDecision
         }
-        startNext(now: now)
+        startNext(now: now, planner: planner)
         lastDecision = .finished
         return lastDecision
     }
 
-    public var queuedCount: Int { queue.count }
+    public var queuedCount: Int { queue.count + continuation.count }
 
-    private mutating func startNext(now: Date) {
+    private mutating func startNext(
+        now: Date,
+        planner: (ActiveBehavior) -> [ActiveBehavior]
+    ) {
+        if !continuation.isEmpty {
+            active = activated(continuation.removeFirst(), now: now)
+            return
+        }
+
         guard !queue.isEmpty else {
             active = ActiveBehavior(animation: "idle", priority: .idle)
             return
@@ -124,7 +153,18 @@ public struct ActionCoordinator: Sendable {
             if lhs.action.priority == rhs.action.priority { return lhs.sequence > rhs.sequence }
             return lhs.action.priority < rhs.action.priority
         }!
-        active = activated(queue.remove(at: best).action, now: now)
+        startPlan(for: queue.remove(at: best).action, now: now, planner: planner)
+    }
+
+    private mutating func startPlan(
+        for action: ActiveBehavior,
+        now: Date,
+        planner: (ActiveBehavior) -> [ActiveBehavior]
+    ) {
+        let proposed = planner(action)
+        let plan = proposed.isEmpty ? [action] : proposed
+        active = activated(plan[0], now: now)
+        continuation = Array(plan.dropFirst())
     }
 
     private func activated(_ action: ActiveBehavior, now: Date) -> ActiveBehavior {
