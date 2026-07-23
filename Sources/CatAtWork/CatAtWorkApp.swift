@@ -25,6 +25,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var didCompleteLaunch = false
     private var currentActionItem: NSMenuItem?
     private var packageVersionItem: NSMenuItem?
+    private var previewMenu: NSMenu?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         guard let bundleID = Bundle.main.bundleIdentifier else {
@@ -76,6 +77,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             "systemAwareness": true,
             "mediaAwareness": false,
             "petScale": 0.45,
+            "currentPetSupportsThrow": true,
+            "currentPetSupportsLocomotion": true,
         ])
         if !UserDefaults.standard.bool(forKey: "appliedCompactDefaultScaleV2") {
             UserDefaults.standard.set(0.45, forKey: "petScale")
@@ -154,14 +157,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         menu.addItem(withTitle: "设置…", action: #selector(showSettings), keyEquivalent: ",")
         menu.addItem(withTitle: "导入 .catpet…", action: #selector(importPet), keyEquivalent: "i")
         let previewItem = NSMenuItem(title: "动作检查", action: nil, keyEquivalent: "")
-        let previewMenu = NSMenu(title: "动作检查")
-        for id in ["idle", "idleEar", "idleTail", "sitToStand", "standToSit", "lieDown", "getUp", "walkLeft", "walkRight", "runLeft", "runRight", "groom", "wave", "petting", "earPet", "chinPet", "backPet", "bellyPet", "pickup", "thrown", "landing", "jump", "bellyRoll", "sleep", "wakeUp", "curious", "working", "waiting", "happy", "startled", "failed"] {
-            let action = NSMenuItem(title: id, action: #selector(previewAction(_:)), keyEquivalent: "")
-            action.representedObject = id
-            action.target = self
-            previewMenu.addItem(action)
-        }
-        previewItem.submenu = previewMenu
+        let animationsMenu = NSMenu(title: "动作检查")
+        previewMenu = animationsMenu
+        previewItem.submenu = animationsMenu
+        rebuildPreviewMenu()
         menu.addItem(previewItem)
         if updatesAreConfigured {
             menu.addItem(withTitle: "检查更新…", action: #selector(checkForUpdates), keyEquivalent: "u")
@@ -195,8 +194,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     func menuWillOpen(_ menu: NSMenu) {
+        rebuildPreviewMenu()
         currentActionItem?.title = "当前动作：\(petWindow?.currentActionStatus ?? "未加载")"
         packageVersionItem?.title = "素材版本：\(petWindow?.currentPackageVersion ?? "未加载")"
+    }
+
+    private func rebuildPreviewMenu() {
+        guard let previewMenu else { return }
+        previewMenu.removeAllItems()
+        for id in petWindow?.availableAnimationIDs ?? [] {
+            let action = NSMenuItem(title: id, action: #selector(previewAction(_:)), keyEquivalent: "")
+            action.representedObject = id
+            action.target = self
+            previewMenu.addItem(action)
+        }
     }
 
     @objc private func openDiagnosticsLog() {

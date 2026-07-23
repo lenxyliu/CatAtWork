@@ -13,6 +13,7 @@ final class MetalPetView: MTKView, MTKViewDelegate {
     private var positionRect = SIMD4<Float>(-1, -1, 1, 1)
     private var flipHorizontally = false
     private var eyeOffsetPixels = SIMD2<Float>(repeating: 0)
+    private var sessionGeneration: UInt64 = 0
     var onRightMouseDown: ((NSEvent) -> Void)?
 
     override var isOpaque: Bool { false }
@@ -59,6 +60,18 @@ final class MetalPetView: MTKView, MTKViewDelegate {
             Float(1 - originY / canvasHeight * 2)
         )
         frameURL = url
+        setNeedsDisplay(bounds)
+    }
+
+    func resetSession(generation: UInt64) {
+        sessionGeneration = generation
+        frameURL = nil
+        lastFrameURL = nil
+        texture = nil
+        atlasRect = nil
+        positionRect = SIMD4<Float>(-1, -1, 1, 1)
+        flipHorizontally = false
+        eyeOffsetPixels = .zero
         setNeedsDisplay(bounds)
     }
 

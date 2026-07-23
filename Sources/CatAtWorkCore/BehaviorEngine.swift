@@ -75,10 +75,13 @@ public struct ActiveBehavior: Equatable, Sendable {
 public struct BehaviorEngine: Sendable {
     private var coordinator = ActionCoordinator()
     private var isGrabbed = false
-    private var currentPose: PetPose = .seated
-    private let poseRouter = PoseTransitionRouter()
+    private var currentPose: PetPose
+    private let contract: PetPackageContract
 
-    public init() {}
+    public init(contract: PetPackageContract = .standard) {
+        self.contract = contract
+        currentPose = contract.initialPose
+    }
 
     public var active: ActiveBehavior { coordinator.active }
     public var lastDecision: ActionDecision { coordinator.lastDecision }
@@ -131,25 +134,58 @@ public struct BehaviorEngine: Sendable {
         case .chinPetted: force = false; request = timed("chinPet", .directInteraction, seconds: 3, now: now)
         case .backPetted: force = false; request = timed("backPet", .directInteraction, seconds: 3, now: now)
         case .bellyPetted: force = false; request = timed("bellyPet", .directInteraction, seconds: 3.2, now: now)
-        case .previewAnimation(let animation): force = true; request = timed(animation, .directInteraction, seconds: 4.5, now: now)
+        case .previewAnimation(let animation):
+            force = false
+            request = nil
+            submit(
+                timed(animation, .directInteraction, seconds: 4.5, now: now),
+                force: true,
+                now: now,
+                routeForced: true
+            )
         case .animationFinished(let animation):
             force = false; request = nil
-            if !isGrabbed {
+            if !isGrabbed, coordinator.active.animation == animation {
+                let completedPriority = coordinator.active.priority
                 updatePose(after: animation)
                 let pose = currentPose
                 _ = coordinator.finish(animation, now: now, planner: actionPlanner(from: pose))
+                if coordinator.active.animation == "idle",
+                   let nextAnimation = contract.nextAnimation(after: animation),
+                   nextAnimation != "idle" {
+                    submit(
+                        ActiveBehavior(animation: nextAnimation, priority: completedPriority),
+                        force: false,
+                        now: now
+                    )
+                }
                 ensureIdlePose(now: now)
             }
         case .grabbed:
-            isGrabbed = true; force = true
-            request = ActiveBehavior(animation: "pickup", priority: .grabbedOrThrown)
+            if contract.supportsPhysicalInteraction {
+                isGrabbed = true
+                force = true
+                request = ActiveBehavior(animation: "pickup", priority: .grabbedOrThrown)
+            } else {
+                isGrabbed = false
+                force = false
+                request = nil
+                _ = coordinator.rejectUnavailable()
+            }
         case .thrown:
-            isGrabbed = false; force = true
-            request = ActiveBehavior(animation: "thrown", priority: .grabbedOrThrown)
+            isGrabbed = false
+            force = contract.supportsPhysicalInteraction
+            request = contract.supportsPhysicalInteraction
+                ? ActiveBehavior(animation: "thrown", priority: .grabbedOrThrown)
+                : nil
+            if request == nil { _ = coordinator.rejectUnavailable() }
         case .landed:
             isGrabbed = false
-            force = true
-            request = timed("landing", .grabbedOrThrown, seconds: 3, now: now)
+            force = contract.supportsPhysicalInteraction
+            request = contract.supportsPhysicalInteraction
+                ? timed("landing", .grabbedOrThrown, seconds: 3, now: now)
+                : nil
+            if request == nil { _ = coordinator.rejectUnavailable() }
         case .networkChanged(let connected):
             force = !connected
             request = connected ? nil : timed("failed", .systemEvent, seconds: 3, now: now)
@@ -180,23 +216,48 @@ public struct BehaviorEngine: Sendable {
                        expiresAt: now.addingTimeInterval(seconds), duration: seconds)
     }
 
-    private mutating func submit(_ request: ActiveBehavior, force: Bool, now: Date) {
+    private mutating func submit(
+        _ request: ActiveBehavior,
+        force: Bool,
+        now: Date,
+        routeForced: Bool = false
+    ) {
+        guard let resolvedID = contract.resolvedAnimationID(for: request.animation) else {
+            _ = coordinator.rejectUnavailable()
+            return
+        }
+        var resolvedRequest = request
+        resolvedRequest.animation = resolvedID
+
         guard !force else {
-            _ = coordinator.submit(request, force: true, now: now)
+            if routeForced {
+                let pose = currentPose
+                _ = coordinator.submit(
+                    resolvedRequest,
+                    force: true,
+                    now: now,
+                    planner: actionPlanner(from: pose)
+                )
+            } else {
+                _ = coordinator.submit(resolvedRequest, force: true, now: now)
+            }
             return
         }
 
         let pose = currentPose
-        _ = coordinator.submit(request, now: now, planner: actionPlanner(from: pose))
+        _ = coordinator.submit(resolvedRequest, now: now, planner: actionPlanner(from: pose))
     }
 
     private func actionPlanner(from pose: PetPose) -> (ActiveBehavior) -> [ActiveBehavior] {
-        let router = poseRouter
+        let router = contract.poseRouter
         return { request in
             guard let targetPose = router.startPose(for: request.animation), targetPose != pose else {
                 return [request]
             }
-            let bridges = router.transitions(from: pose, to: targetPose).map {
+            guard let transitionIDs = router.transitions(from: pose, to: targetPose) else {
+                return []
+            }
+            let bridges = transitionIDs.map {
                 ActiveBehavior(animation: $0, priority: request.priority)
             }
             return bridges + [request]
@@ -204,12 +265,13 @@ public struct BehaviorEngine: Sendable {
     }
 
     private mutating func updatePose(after animation: String) {
-        if let endPose = poseRouter.endPose(for: animation) { currentPose = endPose }
+        if let endPose = contract.poseRouter.endPose(for: animation) { currentPose = endPose }
     }
 
     private mutating func ensureIdlePose(now: Date) {
-        guard coordinator.active.animation == "idle", currentPose != .seated else { return }
-        guard let transition = poseRouter.transitions(from: currentPose, to: .seated).first else { return }
+        let idlePose = contract.initialPose
+        guard coordinator.active.animation == "idle", currentPose != idlePose else { return }
+        guard let transition = contract.poseRouter.transitions(from: currentPose, to: idlePose)?.first else { return }
         _ = coordinator.submit(ActiveBehavior(animation: transition, priority: .autonomous), now: now)
     }
 }

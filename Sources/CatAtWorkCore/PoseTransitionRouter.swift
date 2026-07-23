@@ -17,7 +17,13 @@ public struct PoseTransitionRouter: Sendable {
         var end: PetPose
     }
 
-    private static let profiles: [String: Profile] = {
+    private struct Bridge: Sendable {
+        var start: PetPose
+        var end: PetPose
+        var animation: String
+    }
+
+    private static let legacyProfiles: [String: Profile] = {
         var values: [String: Profile] = [:]
         func add(_ ids: [String], _ start: PetPose, _ end: PetPose) {
             for id in ids { values[id] = Profile(start: start, end: end) }
@@ -37,21 +43,67 @@ public struct PoseTransitionRouter: Sendable {
         return values
     }()
 
-    public init() {}
+    private let profiles: [String: Profile]
+    private let bridges: [Bridge]
 
-    public func startPose(for animation: String) -> PetPose? { Self.profiles[animation]?.start }
-    public func endPose(for animation: String) -> PetPose? { Self.profiles[animation]?.end }
+    public init() {
+        profiles = Self.legacyProfiles
+        bridges = Self.makeBridges(profiles: profiles)
+    }
 
-    public func transitions(from start: PetPose, to end: PetPose) -> [String] {
+    public init(manifest: PetManifest) {
+        var compiled: [String: Profile] = [:]
+        for animation in manifest.animations {
+            let legacy = Self.legacyProfiles[animation.id] ?? Profile(start: .seated, end: .seated)
+            let start = animation.startPose.flatMap(PetPose.init(rawValue:)) ?? legacy.start
+            let end = animation.endPose.flatMap(PetPose.init(rawValue:)) ?? legacy.end
+            compiled[animation.id] = Profile(start: start, end: end)
+        }
+        profiles = compiled
+        bridges = Self.makeBridges(profiles: compiled)
+    }
+
+    public func startPose(for animation: String) -> PetPose? { profiles[animation]?.start }
+    public func endPose(for animation: String) -> PetPose? { profiles[animation]?.end }
+
+    /// Returns nil when the package has no legal authored bridge path.
+    public func transitions(from start: PetPose, to end: PetPose) -> [String]? {
         guard start != end else { return [] }
-        return switch (start, end) {
-        case (.seated, .standing): ["sitToStand"]
-        case (.standing, .seated): ["standToSit"]
-        case (.seated, .lying): ["lieDown"]
-        case (.lying, .seated): ["getUp"]
-        case (.standing, .lying): ["standToSit", "lieDown"]
-        case (.lying, .standing): ["getUp", "sitToStand"]
-        default: []
+        var pending: [(pose: PetPose, path: [String])] = [(start, [])]
+        var visited: Set<PetPose> = [start]
+        while !pending.isEmpty {
+            let current = pending.removeFirst()
+            for bridge in bridges where bridge.start == current.pose {
+                let path = current.path + [bridge.animation]
+                if bridge.end == end { return path }
+                if visited.insert(bridge.end).inserted {
+                    pending.append((bridge.end, path))
+                }
+            }
+        }
+        return nil
+    }
+
+    public static func defaultStartPose(for animation: String) -> PetPose {
+        legacyProfiles[animation]?.start ?? .seated
+    }
+
+    public static func defaultEndPose(for animation: String) -> PetPose {
+        legacyProfiles[animation]?.end ?? defaultStartPose(for: animation)
+    }
+
+    private static func makeBridges(profiles: [String: Profile]) -> [Bridge] {
+        let candidates: [(PetPose, PetPose, [String])] = [
+            (.seated, .standing, ["sitToStand"]),
+            (.standing, .seated, ["standToSit"]),
+            (.seated, .lying, ["lieDown"]),
+            (.lying, .seated, ["getUp", "wakeUp"]),
+        ]
+        return candidates.compactMap { start, end, animationIDs in
+            guard let animation = animationIDs.first(where: {
+                profiles[$0]?.start == start && profiles[$0]?.end == end
+            }) else { return nil }
+            return Bridge(start: start, end: end, animation: animation)
         }
     }
 }

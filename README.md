@@ -55,7 +55,7 @@ python3 Scripts/summarize_interaction_log.py
 
 ## 素材尺寸规则
 
-动画帧使用可变画布和统一 `pixelsPerBodyUnit`，打包为按动作划分的可变矩形纹理图集。运行时通过 `textureRect`、`sourceSize`、`trimRect` 与 `pivot` 恢复真实尺寸，禁止逐动作执行 fit-to-cell，因此奔跑不会因为身体更宽而被缩小。
+动画帧使用可变画布和统一 `pixelsPerBodyUnit`，打包为按动作划分的可变矩形纹理图集。运行时通过 `textureRect`、`sourceSize`、`trimRect` 与 `pivot` 恢复真实尺寸，并按 `220 / pixelsPerBodyUnit` 归一化不同素材密度；禁止逐动作执行 fit-to-cell，因此奔跑不会因为身体更宽而被缩小。
 
 ## 目录
 

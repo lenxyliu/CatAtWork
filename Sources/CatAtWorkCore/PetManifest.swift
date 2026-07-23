@@ -165,6 +165,7 @@ public enum PetManifestIssue: Error, Equatable, CustomStringConvertible {
     case tooManyAnimations(Int)
     case tooManyFrames(animation: String, actual: Int)
     case invalidNextAnimation(String)
+    case invalidPose(animation: String, pose: String)
 
     public var description: String {
         switch self {
@@ -183,6 +184,7 @@ public enum PetManifestIssue: Error, Equatable, CustomStringConvertible {
         case .tooManyAnimations(let count): "The pet declares too many animations: \(count)"
         case .tooManyFrames(let animation, let actual): "Animation \(animation) declares too many frames: \(actual)"
         case .invalidNextAnimation(let id): "Animation references an unknown nextAnimation: \(id)"
+        case .invalidPose(let animation, let pose): "Animation \(animation) declares an unsupported pose: \(pose)"
         }
     }
 }
@@ -200,7 +202,9 @@ public struct PetManifestValidator: Sendable {
         if let assetVersion = manifest.assetVersion, !(1...64).contains(assetVersion.count) {
             throw PetManifestIssue.invalidMetadata("assetVersion")
         }
-        guard manifest.pixelsPerBodyUnit > 0 else { throw PetManifestIssue.invalidFrameGeometry("pixelsPerBodyUnit") }
+        guard manifest.pixelsPerBodyUnit.isFinite, manifest.pixelsPerBodyUnit > 0 else {
+            throw PetManifestIssue.invalidFrameGeometry("pixelsPerBodyUnit")
+        }
         guard AppVersion(manifest.minimumAppVersion) != nil else { throw PetManifestIssue.invalidMinimumAppVersion }
         guard manifest.animations.count <= 128 else { throw PetManifestIssue.tooManyAnimations(manifest.animations.count) }
 
@@ -231,11 +235,11 @@ public struct PetManifestValidator: Sendable {
                !(0..<animation.frames.count).contains(loopStart) {
                 throw PetManifestIssue.invalidFrameGeometry("\(animation.id).loopStartFrame")
             }
-            if let startPose = animation.startPose, startPose.count > 40 {
-                throw PetManifestIssue.invalidMetadata("\(animation.id).startPose")
+            if let startPose = animation.startPose, PetPose(rawValue: startPose) == nil {
+                throw PetManifestIssue.invalidPose(animation: animation.id, pose: startPose)
             }
-            if let endPose = animation.endPose, endPose.count > 40 {
-                throw PetManifestIssue.invalidMetadata("\(animation.id).endPose")
+            if let endPose = animation.endPose, PetPose(rawValue: endPose) == nil {
+                throw PetManifestIssue.invalidPose(animation: animation.id, pose: endPose)
             }
         }
         guard animationIDs.contains("idle") else { throw PetManifestIssue.missingIdle }

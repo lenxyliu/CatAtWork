@@ -8,6 +8,7 @@ public enum ActionDecision: String, Equatable, Sendable {
     case finished
     case ignoredDuplicate
     case ignoredWhilePhysical
+    case ignoredUnavailable
     case noChange
 }
 
@@ -23,6 +24,12 @@ public struct ActionCoordinator: Sendable {
     private var sequence: UInt64 = 0
 
     public init() {}
+
+    @discardableResult
+    public mutating func rejectUnavailable() -> ActionDecision {
+        lastDecision = .ignoredUnavailable
+        return lastDecision
+    }
 
     @discardableResult
     public mutating func submit(
@@ -44,9 +51,14 @@ public struct ActionCoordinator: Sendable {
                 lastDecision = .ignoredDuplicate
                 return lastDecision
             }
+            let plan = planner(action)
+            guard !plan.isEmpty else {
+                lastDecision = .ignoredUnavailable
+                return lastDecision
+            }
             queue.removeAll()
-            continuation.removeAll()
-            active = activated(action, now: now)
+            active = activated(plan[0], now: now)
+            continuation = Array(plan.dropFirst())
             lastDecision = .forced
             return lastDecision
         }
@@ -78,8 +90,9 @@ public struct ActionCoordinator: Sendable {
         }
 
         if active.priority == .idle {
-            startPlan(for: action, now: now, planner: planner)
-            lastDecision = .started
+            lastDecision = startPlan(for: action, now: now, planner: planner)
+                ? .started
+                : .ignoredUnavailable
             return lastDecision
         }
 
@@ -143,28 +156,34 @@ public struct ActionCoordinator: Sendable {
             return
         }
 
-        guard !queue.isEmpty else {
-            active = ActiveBehavior(animation: "idle", priority: .idle)
-            return
+        while !queue.isEmpty {
+            let best = queue.indices.max {
+                let lhs = queue[$0]
+                let rhs = queue[$1]
+                if lhs.action.priority == rhs.action.priority { return lhs.sequence > rhs.sequence }
+                return lhs.action.priority < rhs.action.priority
+            }!
+            if startPlan(for: queue.remove(at: best).action, now: now, planner: planner) {
+                return
+            }
         }
-        let best = queue.indices.max {
-            let lhs = queue[$0]
-            let rhs = queue[$1]
-            if lhs.action.priority == rhs.action.priority { return lhs.sequence > rhs.sequence }
-            return lhs.action.priority < rhs.action.priority
-        }!
-        startPlan(for: queue.remove(at: best).action, now: now, planner: planner)
+        active = ActiveBehavior(animation: "idle", priority: .idle)
     }
 
+    @discardableResult
     private mutating func startPlan(
         for action: ActiveBehavior,
         now: Date,
         planner: (ActiveBehavior) -> [ActiveBehavior]
-    ) {
-        let proposed = planner(action)
-        let plan = proposed.isEmpty ? [action] : proposed
+    ) -> Bool {
+        let plan = planner(action)
+        guard !plan.isEmpty else {
+            continuation.removeAll()
+            return false
+        }
         active = activated(plan[0], now: now)
         continuation = Array(plan.dropFirst())
+        return true
     }
 
     private func activated(_ action: ActiveBehavior, now: Date) -> ActiveBehavior {

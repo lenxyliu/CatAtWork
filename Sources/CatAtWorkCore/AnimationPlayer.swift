@@ -14,6 +14,12 @@ public struct AnimationPlayer: Sendable {
     public mutating func transition(to animationID: String) {
         guard self.animationID != animationID else { return }
         self.animationID = animationID
+        restart()
+    }
+
+    /// Restarts the current animation without requiring its identifier to
+    /// change, which is needed for a valid self-referential nextAnimation.
+    public mutating func restart() {
         frameIndex = 0
         elapsedInFrame = 0
         direction = 1
@@ -67,7 +73,9 @@ public struct AnimationPlayer: Sendable {
 }
 
 public extension PetManifest {
+    /// Exact package lookup. Runtime fallback belongs to PetPackageContract and
+    /// must be explicit before an action enters the queue.
     func animation(named id: String) -> PetAnimation? {
-        animations.first { $0.id == id } ?? animations.first { $0.id == "idle" }
+        animations.first { $0.id == id }
     }
 }

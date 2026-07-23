@@ -14,6 +14,8 @@ final class PetWindowController: NSWindowController {
     private var player = AnimationPlayer()
     private var manifest: PetManifest?
     private var packageRoot: URL?
+    private var packageContract = PetPackageContract.standard
+    private var sessionGeneration: UInt64 = 0
     private var lastTimestamp: CFTimeInterval = CACurrentMediaTime()
     private var lastPhysicsTimestamp: CFTimeInterval = CACurrentMediaTime()
     private var dragSamples: [(time: CFTimeInterval, point: NSPoint)] = []
@@ -102,13 +104,18 @@ final class PetWindowController: NSWindowController {
     func loadPet(at root: URL) throws {
         let imported = try PetPackageImporter().inspectDirectory(at: root)
         let previousAnchor = manifest == nil ? nil : windowWorldAnchor()
+        let nextContract = PetPackageContract(manifest: imported.manifest)
+        let frames = imported.manifest.animations.flatMap(\.frames) + imported.manifest.lookDirections.map(\.frame)
+
         manifest = imported.manifest
         packageRoot = root
-        let frames = imported.manifest.animations.flatMap(\.frames) + imported.manifest.lookDirections.map(\.frame)
+        packageContract = nextContract
         canvasLayout = PetCanvasLayout(frames: frames, margin: 16)
         resizeWindowForCanvas(preserving: previousAnchor)
         if previousAnchor == nil { placeOnVisibleScreen() }
-        player.transition(to: "idle")
+        resetSessionState(now: CACurrentMediaTime())
+        UserDefaults.standard.set(packageContract.supportsPhysicalInteraction, forKey: "currentPetSupportsThrow")
+        UserDefaults.standard.set(packageContract.supportsPointerLocomotion, forKey: "currentPetSupportsLocomotion")
         updateRenderedFrame()
     }
 
@@ -182,8 +189,12 @@ final class PetWindowController: NSWindowController {
     }
 
     private func currentCanvasScaleY() -> Double {
-        guard let window, canvasLayout.size.height > 0 else { return 0.45 }
+        guard let window, canvasLayout.size.height > 0 else { return runtimeCanvasScale() }
         return window.frame.height / Double(canvasLayout.size.height)
+    }
+
+    private func runtimeCanvasScale() -> Double {
+        packageContract.canvasScale(userScale: UserDefaults.standard.double(forKey: "petScale"))
     }
 
     private func floorWindowOriginY(in area: NSRect) -> Double {
@@ -205,8 +216,7 @@ final class PetWindowController: NSWindowController {
 
     private func resizeWindowForCanvas(preserving worldAnchor: NSPoint?) {
         guard let window else { return }
-        let configured = UserDefaults.standard.double(forKey: "petScale")
-        let scale = configured > 0 ? configured : 0.45
+        let scale = runtimeCanvasScale()
         let size = NSSize(
             width: Double(canvasLayout.size.width) * scale,
             height: Double(canvasLayout.size.height) * scale
@@ -254,7 +264,8 @@ final class PetWindowController: NSWindowController {
             mouseDownPoint = nil
             return
         }
-        guard UserDefaults.standard.bool(forKey: "throwEnabled") else {
+        guard UserDefaults.standard.bool(forKey: "throwEnabled"),
+              packageContract.supportsPhysicalInteraction else {
             dispatch(.clicked, source: "click")
             return
         }
@@ -301,8 +312,12 @@ final class PetWindowController: NSWindowController {
             shooCooldownUntil = now + Double.random(in: 25...45)
             shooRunUntil = now + 1.25
             nextMouseInterestAt = shooCooldownUntil + Double.random(in: 20...50)
-            physics.velocity.x = moveRight ? 280 : -280
             dispatch(moveRight ? .shooRight : .shooLeft, source: "pointer-shoo")
+            if behavior.lastDecision == .ignoredUnavailable {
+                shooRunUntil = 0
+            } else {
+                physics.velocity.x = moveRight ? 280 : -280
+            }
         case .pet(let region, let lockedLeft):
             recognizedBodyGesture = true
             mouseInterestUntil = 0
@@ -322,19 +337,28 @@ final class PetWindowController: NSWindowController {
                   window.screen?.frame.contains(point) == true {
             let horizontalDistance = abs(point.x - window.frame.midX)
             if pointerChaseIsActive ? horizontalDistance > 125 : horizontalDistance > 170 {
-                pointerChaseIsActive = true
                 let movingRight = point.x > window.frame.midX
                 let running = horizontalDistance > 320
                 let desiredVelocity = min(running ? 300 : 135, max(running ? 190 : 80, horizontalDistance * 0.75)) * (movingRight ? 1.0 : -1.0)
-                pointerDesiredVelocity = desiredVelocity
-                if running {
-                    dispatch(movingRight ? .pointerChaseRight : .pointerChaseLeft, source: "cat-visits-pointer")
+                let requestedID = running
+                    ? (movingRight ? "runRight" : "runLeft")
+                    : (movingRight ? "walkRight" : "walkLeft")
+                if packageContract.resolvedAnimationID(for: requestedID) != nil {
+                    pointerChaseIsActive = true
+                    pointerDesiredVelocity = desiredVelocity
+                    if running {
+                        dispatch(movingRight ? .pointerChaseRight : .pointerChaseLeft, source: "cat-visits-pointer")
+                    } else {
+                        dispatch(movingRight ? .pointerWalkRight : .pointerWalkLeft, source: "cat-visits-pointer")
+                    }
+                    if ["walkLeft", "walkRight", "runLeft", "runRight"].contains(behavior.active.animation) {
+                        physics.velocity.x += (desiredVelocity - physics.velocity.x) * 0.22
+                    } else {
+                        physics.velocity.x *= 0.72
+                    }
                 } else {
-                    dispatch(movingRight ? .pointerWalkRight : .pointerWalkLeft, source: "cat-visits-pointer")
-                }
-                if ["walkLeft", "walkRight", "runLeft", "runRight"].contains(behavior.active.animation) {
-                    physics.velocity.x += (desiredVelocity - physics.velocity.x) * 0.22
-                } else {
+                    pointerChaseIsActive = false
+                    pointerDesiredVelocity = 0
                     physics.velocity.x *= 0.72
                 }
             } else {
@@ -454,6 +478,9 @@ final class PetWindowController: NSWindowController {
             _ = player.advance(deltaTime: dt, animation: animation)
             if player.isFinished(animation: animation) {
                 dispatch(.animationFinished(animation.id), source: "animation-finished")
+                if behavior.active.animation == animation.id {
+                    player.restart()
+                }
             }
         }
         updateRenderedFrame()
@@ -554,6 +581,10 @@ final class PetWindowController: NSWindowController {
     }
 
     private func scheduleRoam(timestamp: CFTimeInterval, run: Bool, moveRight: Bool) {
+        let requestedID = run
+            ? (moveRight ? "runRight" : "runLeft")
+            : (moveRight ? "walkRight" : "walkLeft")
+        guard packageContract.resolvedAnimationID(for: requestedID) != nil else { return }
         guard let window, let area = (window.screen ?? NSScreen.main)?.visibleFrame else { return }
         let lower = area.minX
         let upper = max(lower, area.maxX - window.frame.width)
@@ -601,6 +632,8 @@ final class PetWindowController: NSWindowController {
 
     var currentPackageVersion: String { manifest?.assetVersion ?? "兼容包" }
 
+    var availableAnimationIDs: [String] { manifest?.animations.map(\.id) ?? [] }
+
     var diagnosticsLogURL: URL? { diagnostics.logURL }
 
     private func dispatch(_ event: PetEvent, source: String) {
@@ -613,7 +646,7 @@ final class PetWindowController: NSWindowController {
         // intents are sufficient to reproduce why an action happened.
         let shouldLogRequest: Bool
         switch decision {
-        case .started, .queued, .forced, .finished, .ignoredWhilePhysical:
+        case .started, .queued, .forced, .finished, .ignoredWhilePhysical, .ignoredUnavailable:
             shouldLogRequest = true
         case .refreshed, .ignoredDuplicate, .noChange:
             shouldLogRequest = false
@@ -727,8 +760,7 @@ final class PetWindowController: NSWindowController {
             flipHorizontally: interactionDirectionUntil > CACurrentMediaTime() && interactionFacesLeft,
             eyeOffsetPixels: eyeOffset
         )
-        let userScale = UserDefaults.standard.double(forKey: "petScale")
-        let scale = userScale > 0 ? userScale : 0.45
+        let scale = runtimeCanvasScale()
         let canvasSize = canvasLayout.size
         let size = NSSize(width: Double(canvasSize.width) * scale, height: Double(canvasSize.height) * scale)
         if let window, window.frame.size != size {
@@ -785,18 +817,79 @@ final class PetWindowController: NSWindowController {
     }
 
     private func interactiveFrame(in window: NSWindow) -> NSRect {
-        guard let frame = currentFrame, let collision = frame.collisionRect else { return window.frame }
+        guard let frame = currentFrame else { return .zero }
+        let interaction = frame.interactionRect
         let canvasSize = canvasLayout.size
         let scaleX = window.frame.width / Double(canvasSize.width)
         let scaleY = window.frame.height / Double(canvasSize.height)
         let bodyScale = frame.bodyScale ?? 1
         let origin = canvasLayout.origin(for: frame)
         return NSRect(
-            x: window.frame.minX + (origin.x + Double(collision.x) * bodyScale) * scaleX,
-            y: window.frame.maxY - (origin.y + Double(collision.y + collision.height) * bodyScale) * scaleY,
-            width: Double(collision.width) * bodyScale * scaleX,
-            height: Double(collision.height) * bodyScale * scaleY
+            x: window.frame.minX + (origin.x + Double(interaction.x) * bodyScale) * scaleX,
+            y: window.frame.maxY - (origin.y + Double(interaction.y + interaction.height) * bodyScale) * scaleY,
+            width: Double(interaction.width) * bodyScale * scaleX,
+            height: Double(interaction.height) * bodyScale * scaleY
         )
+    }
+
+    private func resetSessionState(now: CFTimeInterval) {
+        let origin = window?.frame.origin ?? .zero
+        let core = PetSessionCoreState(
+            replacing: sessionGeneration,
+            contract: packageContract,
+            position: .init(x: origin.x, y: origin.y)
+        )
+        sessionGeneration = core.generation
+        behavior = core.behavior
+        player = core.player
+        physics = core.physics
+        lastTimestamp = now
+        lastPhysicsTimestamp = now
+        dragSamples.removeAll()
+        mouseDownPoint = nil
+        isDragging = false
+        currentFrame = nil
+        lastPettingPoint = nil
+        accumulatedPettingDistance = 0
+        lookDirectionIndex = 0
+        targetLookDirectionIndex = 0
+        displayLinkIsThrottled = false
+        pointerChaseIsActive = false
+        pointerDesiredVelocity = 0
+        mouseInterestUntil = 0
+        nextMouseInterestAt = now + Double.random(in: 25...55)
+        gazeUntil = 0
+        gazeTrackingUntil = 0
+        nextGazeAt = now + Double.random(in: 8...25)
+        shooCooldownUntil = 0
+        shooRunUntil = 0
+        lastPointerSample = nil
+        roamUntil = 0
+        roamDirection = Bool.random() ? 1 : -1
+        roamTargetX = nil
+        roamIsRunning = false
+        interactionFacesLeft = false
+        interactionDirectionUntil = 0
+        lastLookStepAt = 0
+        pendingLookDirectionIndex = 0
+        pendingLookDirectionSince = 0
+        smoothedPointerSpeed = 0
+        lastFastNearPointerAt = 0
+        lastFastHorizontalDirection = 0
+        fastNearReversalCount = 0
+        autonomyScheduler = AutonomyScheduler(
+            startTime: now,
+            seed: UInt64.random(in: UInt64.min...UInt64.max)
+        )
+        pendingActivityEvent = nil
+        pointerIntentRecognizer = PointerIntentRecognizer()
+        lastPointerDiagnosticAt = 0
+        petView.resetSession(generation: sessionGeneration)
+        window?.ignoresMouseEvents = true
+        diagnostics.log(category: "lifecycle", event: "pet-session-published", fields: [
+            "generation": String(sessionGeneration),
+            "petID": manifest?.id ?? "unknown",
+        ])
     }
 
     private func updateMousePassthrough() {
@@ -823,6 +916,7 @@ final class PetWindowController: NSWindowController {
         let chase = NSMenuItem(title: "偶尔靠近鼠标", action: #selector(toggleChaseFromMenu(_:)), keyEquivalent: "")
         chase.target = self
         chase.state = UserDefaults.standard.bool(forKey: "chasePointer") ? .on : .off
+        chase.isEnabled = packageContract.supportsPointerLocomotion
         menu.addItem(chase)
         let settings = NSMenuItem(title: "设置…", action: #selector(showSettings), keyEquivalent: "")
         settings.target = self
