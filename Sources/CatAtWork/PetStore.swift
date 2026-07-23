@@ -6,8 +6,12 @@ enum PetStoreError: LocalizedError {
     case archiveListingFailed
     case archiveExtractionFailed
     case manifestNotAtArchiveRoot
+    case compressedArchiveTooLarge
     case archiveTooLarge
     case tooManyArchiveEntries
+    case archiveTooDeep
+    case archiveLinkNotAllowed
+    case archiveTimedOut
     case requiresNewerApp(String)
     case reservedBuiltInIdentifier
 
@@ -17,8 +21,12 @@ enum PetStoreError: LocalizedError {
         case .archiveListingFailed: "无法读取这个 .catpet 压缩包。"
         case .archiveExtractionFailed: "无法解压这个 .catpet 压缩包。"
         case .manifestNotAtArchiveRoot: "压缩包根目录必须直接包含 manifest.json。"
+        case .compressedArchiveTooLarge: "宠物包压缩文件超过 256 MB 限制。"
         case .archiveTooLarge: "宠物包解压后超过 512 MB 限制。"
         case .tooManyArchiveEntries: "宠物包包含过多文件。"
+        case .archiveTooDeep: "宠物包目录嵌套超过 32 层限制。"
+        case .archiveLinkNotAllowed: "宠物包压缩文件不能包含符号链接。"
+        case .archiveTimedOut: "宠物包处理超时。"
         case .requiresNewerApp(let version): "这个宠物需要猫上班了 \(version) 或更高版本。"
         case .reservedBuiltInIdentifier: "“cat-at-work”是应用内置小猫的保留 ID，不能被导入包覆盖。"
         }
@@ -27,8 +35,7 @@ enum PetStoreError: LocalizedError {
 
 /// Owns installed packages. Archives are expanded into a private temporary directory, validated,
 /// and only then copied into Application Support. No code from a package is ever executed.
-struct PetStore {
-    private let fileManager = FileManager.default
+struct PetStore: Sendable {
     private let supportRootOverride: URL?
     private let reservedIdentifiers: Set<String>
 
@@ -40,7 +47,15 @@ struct PetStore {
         self.reservedIdentifiers = reservedIdentifiers
     }
 
-    func install(from source: URL) throws -> ImportedPet {
+    nonisolated func install(from source: URL) async throws -> ImportedPet {
+        try await BackgroundIO.run {
+            try await installOffMain(from: source)
+        }
+    }
+
+    private nonisolated func installOffMain(from source: URL) async throws -> ImportedPet {
+        let fileManager = FileManager.default
+        try Task.checkCancellation()
         let inspected: ImportedPet
         var temporaryRoot: URL?
         defer {
@@ -49,6 +64,7 @@ struct PetStore {
 
         var isDirectory: ObjCBool = false
         if fileManager.fileExists(atPath: source.path, isDirectory: &isDirectory), isDirectory.boolValue {
+            try Task.checkCancellation()
             if fileManager.fileExists(atPath: source.appendingPathComponent("manifest.json").path) {
                 inspected = try PetPackageImporter().inspectDirectory(at: source)
             } else if fileManager.fileExists(atPath: source.appendingPathComponent("pet.json").path) {
@@ -64,8 +80,10 @@ struct PetStore {
                 .appendingPathComponent("CatAtWork-import-\(UUID().uuidString)", isDirectory: true)
             try fileManager.createDirectory(at: root, withIntermediateDirectories: false)
             temporaryRoot = root
-            try validateArchiveListing(source)
-            try extractArchive(source, to: root)
+            try await validateArchiveListing(source)
+            try Task.checkCancellation()
+            try await extractArchive(source, to: root)
+            try Task.checkCancellation()
             guard fileManager.fileExists(atPath: root.appendingPathComponent("manifest.json").path) else {
                 throw PetStoreError.manifestNotAtArchiveRoot
             }
@@ -81,6 +99,7 @@ struct PetStore {
             throw PetStoreError.reservedBuiltInIdentifier
         }
 
+        try Task.checkCancellation()
         let support = if let supportRootOverride {
             supportRootOverride
         } else {
@@ -91,7 +110,9 @@ struct PetStore {
         try fileManager.createDirectory(at: support, withIntermediateDirectories: true)
         let destination = support.appendingPathComponent("\(inspected.manifest.id).catpet", isDirectory: true)
         let staging = support.appendingPathComponent(".\(inspected.manifest.id)-\(UUID().uuidString)", isDirectory: true)
+        defer { try? fileManager.removeItem(at: staging) }
         try fileManager.copyItem(at: inspected.rootURL, to: staging)
+        try Task.checkCancellation()
         _ = try PetPackageImporter().inspectDirectory(at: staging)
         if fileManager.fileExists(atPath: destination.path) {
             _ = try fileManager.replaceItemAt(destination, withItemAt: staging)
@@ -101,40 +122,61 @@ struct PetStore {
         return try PetPackageImporter().inspectDirectory(at: destination)
     }
 
-    private func validateArchiveListing(_ archive: URL) throws {
-        try validateArchiveTotals(archive)
-        let process = Process()
-        let output = Pipe()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/unzip")
-        process.arguments = ["-Z1", archive.path]
-        process.standardOutput = output
-        process.standardError = Pipe()
-        try process.run()
-        process.waitUntilExit()
-        guard process.terminationStatus == 0 else { throw PetStoreError.archiveListingFailed }
-        let data = output.fileHandleForReading.readDataToEndOfFile()
-        guard data.count <= 4 * 1_024 * 1_024,
-              let listing = String(data: data, encoding: .utf8) else {
+    private nonisolated func validateArchiveListing(_ archive: URL) async throws {
+        try await validateArchiveTotals(archive)
+        let result: ProcessRunResult
+        do {
+            result = try await AsyncProcessRunner.run(
+                executableURL: URL(fileURLWithPath: "/usr/bin/unzip"),
+                arguments: ["-Z1", archive.path],
+                timeout: .seconds(30),
+                maximumCapturedOutputBytes: 4 * 1_024 * 1_024
+            )
+        } catch ProcessRunError.timedOut {
+            throw PetStoreError.archiveTimedOut
+        } catch ProcessRunError.cancelled {
+            throw CancellationError()
+        } catch {
+            throw PetStoreError.archiveListingFailed
+        }
+        guard result.terminationStatus == 0, !result.outputWasTruncated,
+              let listing = String(data: result.output, encoding: .utf8) else {
             throw PetStoreError.archiveListingFailed
         }
         for entry in listing.split(whereSeparator: \Character.isNewline).map(String.init) {
             guard PetManifestValidator.isSafeResourcePath(entry), !entry.hasPrefix("__MACOSX/") else {
                 throw PetStoreError.unsafeArchiveEntry(entry)
             }
+            guard entry.split(separator: "/", omittingEmptySubsequences: true).count <= 32 else {
+                throw PetStoreError.archiveTooDeep
+            }
         }
+        try await validateArchiveAttributes(archive)
     }
 
-    private func validateArchiveTotals(_ archive: URL) throws {
-        let process = Process()
-        let output = Pipe()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/unzip")
-        process.arguments = ["-Z", "-t", archive.path]
-        process.standardOutput = output
-        process.standardError = Pipe()
-        try process.run()
-        process.waitUntilExit()
-        guard process.terminationStatus == 0,
-              let summary = String(data: output.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) else {
+    private nonisolated func validateArchiveTotals(_ archive: URL) async throws {
+        let values = try archive.resourceValues(forKeys: [.fileSizeKey, .isRegularFileKey])
+        guard values.isRegularFile == true,
+              Int64(values.fileSize ?? 0) <= 256 * 1_024 * 1_024 else {
+            throw PetStoreError.compressedArchiveTooLarge
+        }
+        let result: ProcessRunResult
+        do {
+            result = try await AsyncProcessRunner.run(
+                executableURL: URL(fileURLWithPath: "/usr/bin/unzip"),
+                arguments: ["-Z", "-t", archive.path],
+                timeout: .seconds(30),
+                maximumCapturedOutputBytes: 64 * 1_024
+            )
+        } catch ProcessRunError.timedOut {
+            throw PetStoreError.archiveTimedOut
+        } catch ProcessRunError.cancelled {
+            throw CancellationError()
+        } catch {
+            throw PetStoreError.archiveListingFailed
+        }
+        guard result.terminationStatus == 0, !result.outputWasTruncated,
+              let summary = String(data: result.output, encoding: .utf8) else {
             throw PetStoreError.archiveListingFailed
         }
         let fields = summary.split(separator: " ")
@@ -147,14 +189,55 @@ struct PetStore {
         guard uncompressedBytes <= 512 * 1_024 * 1_024 else { throw PetStoreError.archiveTooLarge }
     }
 
-    private func extractArchive(_ archive: URL, to destination: URL) throws {
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/ditto")
-        process.arguments = ["-x", "-k", "--noqtn", archive.path, destination.path]
-        process.standardOutput = Pipe()
-        process.standardError = Pipe()
-        try process.run()
-        process.waitUntilExit()
-        guard process.terminationStatus == 0 else { throw PetStoreError.archiveExtractionFailed }
+    private nonisolated func extractArchive(_ archive: URL, to destination: URL) async throws {
+        do {
+            let result = try await AsyncProcessRunner.run(
+                executableURL: URL(fileURLWithPath: "/usr/bin/ditto"),
+                arguments: ["-x", "-k", "--noqtn", archive.path, destination.path],
+                timeout: .seconds(120),
+                maximumCapturedOutputBytes: 256 * 1_024
+            )
+            guard result.terminationStatus == 0, !result.outputWasTruncated else {
+                throw PetStoreError.archiveExtractionFailed
+            }
+        } catch ProcessRunError.timedOut {
+            throw PetStoreError.archiveTimedOut
+        } catch ProcessRunError.cancelled {
+            throw CancellationError()
+        } catch let error as PetStoreError {
+            throw error
+        } catch {
+            throw PetStoreError.archiveExtractionFailed
+        }
+    }
+
+    private nonisolated func validateArchiveAttributes(_ archive: URL) async throws {
+        let result: ProcessRunResult
+        do {
+            result = try await AsyncProcessRunner.run(
+                executableURL: URL(fileURLWithPath: "/usr/bin/zipinfo"),
+                arguments: ["-l", archive.path],
+                timeout: .seconds(30),
+                maximumCapturedOutputBytes: 4 * 1_024 * 1_024
+            )
+        } catch ProcessRunError.timedOut {
+            throw PetStoreError.archiveTimedOut
+        } catch ProcessRunError.cancelled {
+            throw CancellationError()
+        } catch {
+            throw PetStoreError.archiveListingFailed
+        }
+        guard result.terminationStatus == 0, !result.outputWasTruncated,
+              let attributes = String(data: result.output, encoding: .utf8) else {
+            throw PetStoreError.archiveListingFailed
+        }
+        for line in attributes.split(whereSeparator: \Character.isNewline) {
+            // `zipinfo -l` entry rows begin with Unix file-type/permission
+            // characters. Symlinks are rejected before extraction so a later
+            // archive entry cannot traverse one into the host filesystem.
+            if line.first == "l" {
+                throw PetStoreError.archiveLinkNotAllowed
+            }
+        }
     }
 }

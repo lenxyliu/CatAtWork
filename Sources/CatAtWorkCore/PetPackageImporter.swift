@@ -30,7 +30,16 @@ public struct PetPackageImporter: Sendable {
 
     public init() {}
 
+    /// Application/UI callers use this entry point so directory traversal and
+    /// image decoding never inherit a main-actor executor.
+    public func inspectDirectoryAsync(at root: URL) async throws -> ImportedPet {
+        try await BackgroundIO.run {
+            try inspectDirectory(at: root)
+        }
+    }
+
     public func inspectDirectory(at root: URL) throws -> ImportedPet {
+        try Task.checkCancellation()
         var isDirectory: ObjCBool = false
         guard FileManager.default.fileExists(atPath: root.path, isDirectory: &isDirectory), isDirectory.boolValue else {
             throw PetPackageError.unsupportedPackageType
@@ -54,6 +63,7 @@ public struct PetPackageImporter: Sendable {
 
         var total: Int64 = 0
         for file in packageFiles {
+            try Task.checkCancellation()
             let values = try file.resourceValues(forKeys: [.fileSizeKey])
             total += Int64(values.fileSize ?? 0)
             guard total <= maximumPackageBytes else { throw PetPackageError.packageTooLarge }
@@ -61,6 +71,7 @@ public struct PetPackageImporter: Sendable {
         let framePaths = manifest.animations.flatMap(\.frames).map(\.image) + manifest.lookDirections.map(\.frame.image)
         var imageSizes: [String: PixelSize] = [:]
         for relativePath in Set(framePaths) {
+            try Task.checkCancellation()
             guard PetManifestValidator.isSafeResourcePath(relativePath) else { throw PetManifestIssue.invalidFramePath(relativePath) }
             let url = root.appendingPathComponent(relativePath).standardizedFileURL
             guard url.path.hasPrefix(root.standardizedFileURL.path + "/"), FileManager.default.fileExists(atPath: url.path) else {
@@ -88,6 +99,7 @@ public struct PetPackageImporter: Sendable {
 
         let allFrames = manifest.animations.flatMap(\.frames) + manifest.lookDirections.map(\.frame)
         for frame in allFrames {
+            try Task.checkCancellation()
             guard let imageSize = imageSizes[frame.image] else { throw PetPackageError.resourceMissing(frame.image) }
             if let texture = frame.textureRect {
                 guard texture.x >= 0, texture.y >= 0,
@@ -118,6 +130,7 @@ public struct PetPackageImporter: Sendable {
         var files: [URL] = []
         let allowedExtensions = Set(["json", "png", "webp", "jpg", "jpeg", "heic", "wav", "aiff", "aif", "caf", "m4a", "mp3"])
         for case let url as URL in enumerator {
+            try Task.checkCancellation()
             let relative = String(url.standardizedFileURL.path.dropFirst(canonicalRoot.path.count + 1))
             guard PetManifestValidator.isSafeResourcePath(relative) else {
                 throw PetManifestIssue.invalidFramePath(relative)
