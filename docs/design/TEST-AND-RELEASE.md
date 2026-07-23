@@ -41,8 +41,9 @@ status and final content digest match the actual reviewed change. Earlier
 executions are never overwritten: a rerun creates a new TR and the proposed
 CHG links both the earlier and later evidence.
 
-A record becomes accepted and immutable when its path exists in protected
-`main`. After that boundary, modification or deletion fails governance;
+A record becomes accepted and immutable when its path exists in canonical
+`main`, regardless of whether the host can enforce branch protection. After
+that boundary, modification or deletion fails governance;
 corrections require a new record that links and, where applicable, supersedes
 the accepted one. PR CI compares against the exact base SHA. Local staged
 validation prefers `refs/remotes/origin/main`, then local `main`, so it applies
@@ -52,16 +53,25 @@ the current feature branch.
 ## Remote enforcement availability
 
 The private GitHub repository permits only squash merge and deletes a feature
-branch after merge. Protected `main` must additionally require PRs plus the
-`governance` and `swift` checks, and must reject force-push and deletion.
+branch after merge. GitHub Free cannot enforce required PRs/checks,
+force-push prevention or deletion prevention for this private repository.
+The owner explicitly declines a paid plan and accepts that limitation.
 
-Those server-side controls are a release gate, not a convention. If the
-current GitHub plan cannot protect a private repository, local hooks and
-passing Actions remain useful evidence but are not equivalent enforcement.
-Merging pauses until the owner enables a plan that supports private-repository
-protection, changes visibility explicitly, or records a time-bounded exception
-through a new CHG/ADR. Automation must never change billing or repository
-visibility on the owner's behalf.
+The procedural fallback requires all work to use PRs, manual confirmation that
+`governance` and `swift` passed on the final head, and squash merge. Local
+hooks and passing Actions are useful evidence but are not equivalent to server
+enforcement. Automation must never claim `main` is protected or change billing
+or visibility. ISSUE-013/BC-016 remain `wont-fix` so the accepted risk stays
+visible.
+
+## Push-to-main validation
+
+PR checks compare the final head against the exact PR base SHA. A push to
+`main` compares the new commit against `github.event.before`; it must not run
+the one-time `--all` baseline mode. Treating the whole repository as newly
+added would revalidate accepted immutable history against the latest digest
+and would require every strategic CHG to appear in every design document.
+The `--all` mode is reserved for establishing a new repository baseline.
 
 ## Release gate
 
@@ -77,3 +87,5 @@ No version tag or Release is created until required automatic and device cases p
 | 2026-07-23 | CHG-20260723-004 | Declared Python 3.13 and pinned Pillow for hosted package/asset validation. |
 | 2026-07-23 | CHG-20260723-005 | Bound immutability to records accepted by protected main while allowing evidence refinement inside an unmerged PR. |
 | 2026-07-23 | CHG-20260723-006 | Applied available squash-only merge settings and made private-repository protection availability an explicit blocking gate. |
+| 2026-07-23 | CHG-20260723-007 | Recorded the owner's permanent no-paid-plan decision and procedural unprotected-main policy. |
+| 2026-07-23 | CHG-20260723-008 | Changed push-to-main governance from full-baseline validation to the exact pushed diff. |

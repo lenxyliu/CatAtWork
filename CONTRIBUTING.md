@@ -7,11 +7,13 @@ This repository uses a design-to-release evidence chain:
 ## Branch and PR workflow
 
 - The one-time recovered baseline may be created on `main`. After its first push, all work uses `codex/<purpose>` branches and pull requests.
-- Protect `main`: disallow deletion and force-push, require PR review, `governance` and test checks, and squash merge.
-- If the hosting plan cannot enforce branch protection for a private
-  repository, merging pauses. Do not silently make the repository public or
-  treat local hooks as equivalent; record the external limitation and obtain
-  an explicit owner decision.
+- Use pull requests for `main`, require `governance` and `swift` to pass, and
+  use squash merge. Never force-push or delete `main`.
+- Server enforcement is preferred. The owner has explicitly accepted that the
+  GitHub Free private repository cannot enforce branch protection and will not
+  purchase a paid plan. Therefore every merge requires a manual check of the
+  final PR head and passing Actions; this procedural control is weaker than
+  branch protection and must not be described as equivalent.
 - One defect or coherent design change per branch. Split unrelated work even if it was discovered during the same review.
 - A PR is not complete while its ISSUE/BC is `fixed-unverified`, its TR digest is stale, or required real-device acceptance is absent.
 

@@ -9,7 +9,7 @@
 - BC: BC-016
 - ADR: ADR-0008
 - Design: TEST-AND-RELEASE
-- TR: TR-CI-20260723-004, TR-GITHUB-20260723-001
+- TR: TR-CI-20260723-004, TR-CI-20260723-005, TR-GITHUB-20260723-001
 
 ## Purpose
 
@@ -61,3 +61,5 @@ repository public or changing billing without explicit owner authorization.
 
 - 2026-07-23: squash-only and delete-branch settings applied; main protection
   blocked by account tier.
+- 2026-07-23: owner decision is recorded separately by ADR-0009/CHG-007;
+  this partial attempt record remains unchanged in meaning.

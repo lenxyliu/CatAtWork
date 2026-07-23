@@ -9,7 +9,7 @@
 - BC: BC-010
 - ADR: ADR-0004
 - Design: TEST-AND-RELEASE
-- TR: TR-CI-20260723-001, TR-CI-20260723-003, TR-CI-20260723-004
+- TR: TR-CI-20260723-001, TR-CI-20260723-003, TR-CI-20260723-004, TR-CI-20260723-005
 
 ## Purpose
 
@@ -65,3 +65,5 @@ toolchain.
   changed; the earlier execution remains preserved.
 - 2026-07-23: run `29985577013` passed the complete hosted Swift job;
   ISSUE-007 is verified fixed.
+- 2026-07-23: linked final-head TR-CI-20260723-005 after the main-push
+  workflow changed; earlier executions remain preserved.

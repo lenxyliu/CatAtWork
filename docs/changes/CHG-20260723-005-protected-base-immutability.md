@@ -9,7 +9,7 @@
 - BC: BC-013
 - ADR: ADR-0007
 - Design: TEST-AND-RELEASE
-- TR: TR-CI-20260723-003, TR-CI-20260723-004
+- TR: TR-CI-20260723-003, TR-CI-20260723-004, TR-CI-20260723-005
 
 ## Purpose
 
@@ -64,3 +64,5 @@ boundary exists.
   the lifecycle deadlock.
 - 2026-07-23: hosted governance passed against the exact PR base in Actions
   run `29985577013`.
+- 2026-07-23: linked final-head TR-CI-20260723-005 after the main-push
+  workflow changed.

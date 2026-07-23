@@ -9,7 +9,7 @@
 - BC: BC-012
 - ADR: ADR-0006
 - Design: TEST-AND-RELEASE
-- TR: TR-CI-20260723-002, TR-CI-20260723-003, TR-CI-20260723-004
+- TR: TR-CI-20260723-002, TR-CI-20260723-003, TR-CI-20260723-004, TR-CI-20260723-005
 
 ## Purpose
 
@@ -62,3 +62,5 @@ ADR/CHG if setup-python or Pillow must change.
   dependency-resolution execution.
 - 2026-07-23: run `29985577013` installed the exact dependency set and passed
   hosted high-frame validation; ISSUE-009 is verified fixed.
+- 2026-07-23: linked final-head TR-CI-20260723-005 after the main-push
+  workflow changed.

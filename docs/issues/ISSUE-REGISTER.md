@@ -16,4 +16,5 @@ The root `ISSUE-CLASSIFICATION.md` is a frozen pre-governance snapshot. Its rows
 | ISSUE-010 | P0 | fixed | Governance treated unmerged PR records as already immutable and blocked evidence refinement | BC-013; TR-CI-20260723-003, TR-CI-20260723-004 | `codex/ci-swift6-baseline` |
 | ISSUE-011 | P2 | open | `actions/checkout@v4` uses a deprecated Node 20 action runtime | BC-014 | `codex/ci-action-runtime` |
 | ISSUE-012 | P2 | open | High-frame validator calls Pillow APIs scheduled for removal in Pillow 14 | BC-015 | `codex/pillow14-validator` |
-| ISSUE-013 | P0 | blocked-external | GitHub Free cannot enforce branch protection on this private repository | BC-016; TR-GITHUB-20260723-001 | repository settings |
+| ISSUE-013 | P0 | wont-fix | GitHub Free cannot enforce branch protection on this private repository; owner accepts procedural PR control | BC-016; TR-GITHUB-20260723-001, TR-GITHUB-20260723-002 | repository settings |
+| ISSUE-014 | P0 | fixed | Push-to-main CI revalidated the entire repository as if every historical record were newly added | BC-017; TR-CI-20260723-005 | `codex/ci-swift6-baseline` |

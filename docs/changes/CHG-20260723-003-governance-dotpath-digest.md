@@ -9,7 +9,7 @@
 - BC: BC-011
 - ADR: ADR-0005
 - Design: TEST-AND-RELEASE
-- TR: TR-CI-20260723-001, TR-CI-20260723-003, TR-CI-20260723-004
+- TR: TR-CI-20260723-001, TR-CI-20260723-003, TR-CI-20260723-004, TR-CI-20260723-005
 
 ## Purpose
 
@@ -64,3 +64,5 @@ in the digest.
   extended the checker suite; previous evidence remains unchanged.
 - 2026-07-23: hosted governance job passed the PR-base comparison and all 12
   checker fixtures in run `29985577013`.
+- 2026-07-23: linked final-head TR-CI-20260723-005 after the workflow/test
+  contract changed.
