@@ -177,6 +177,24 @@ class GovernanceFixtureTests(unittest.TestCase):
         )
         self.assertEqual(errors, [])
 
+    def test_record_already_in_protected_base_is_immutable(self):
+        path = "docs/changes/CHG-20260723-999-fixture.md"
+        errors = governance.validate_repository(
+            self.root,
+            [governance.Change("M", path)],
+            protected_immutable={path},
+        )
+        self.assertTrue(any("immutable record" in error for error in errors))
+
+    def test_unmerged_branch_record_can_be_refined(self):
+        path = "docs/test-runs/TR-FIXTURE.md"
+        errors = governance.validate_repository(
+            self.root,
+            [governance.Change("M", path)],
+            protected_immutable=set(),
+        )
+        self.assertFalse(any("immutable record" in error for error in errors))
+
 
 if __name__ == "__main__":
     unittest.main()

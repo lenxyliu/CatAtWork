@@ -33,6 +33,22 @@ Package/asset validation in the hosted job uses Python 3.13 provisioned by
 Pillow versions; validation must not rely on packages that happen to be
 preinstalled on a runner image.
 
+## Evidence-record lifecycle
+
+An ADR, CHG, TR or audit created only on an unmerged branch is a proposed
+record. It may be refined in later commits of the same PR so that its links,
+status and final content digest match the actual reviewed change. Earlier
+executions are never overwritten: a rerun creates a new TR and the proposed
+CHG links both the earlier and later evidence.
+
+A record becomes accepted and immutable when its path exists in protected
+`main`. After that boundary, modification or deletion fails governance;
+corrections require a new record that links and, where applicable, supersedes
+the accepted one. PR CI compares against the exact base SHA. Local staged
+validation prefers `refs/remotes/origin/main`, then local `main`, so it applies
+the same accepted-record boundary without freezing records that exist only on
+the current feature branch.
+
 ## Release gate
 
 No version tag or Release is created until required automatic and device cases pass, all release artifacts have verified checksums, signing/DMG validation succeeds, and every release-blocking high-priority ISSUE is closed.
@@ -45,3 +61,4 @@ No version tag or Release is created until required automatic and device cases p
 | 2026-07-23 | CHG-20260723-002 | Pinned the hosted Swift job to macOS 15/Xcode 16.4 and required toolchain identity output. |
 | 2026-07-23 | CHG-20260723-003 | Corrected dot-path normalization so hooks, workflows and root dotfiles invalidate stale TR evidence. |
 | 2026-07-23 | CHG-20260723-004 | Declared Python 3.13 and pinned Pillow for hosted package/asset validation. |
+| 2026-07-23 | CHG-20260723-005 | Bound immutability to records accepted by protected main while allowing evidence refinement inside an unmerged PR. |

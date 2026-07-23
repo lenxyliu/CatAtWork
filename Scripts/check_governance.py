@@ -281,9 +281,58 @@ def validate_lfs_and_forbidden(root: Path, errors: list[str]) -> None:
             errors.append(f"tracked production binary is a full Git blob, not an LFS pointer: {path}")
 
 
-def validate_repository(root: Path, changes: Sequence[Change], trivial: bool = False) -> list[str]:
+def immutable_paths_at_ref(root: Path, ref: str) -> set[str]:
+    """Return immutable-record paths already accepted by a protected ref."""
+    result = run_git(
+        root,
+        [
+            "ls-tree",
+            "-r",
+            "--name-only",
+            "-z",
+            ref,
+            "--",
+            "docs/adr",
+            "docs/changes",
+            "docs/test-runs",
+            "docs/audits",
+        ],
+        check=False,
+    )
+    if result.returncode != 0:
+        return set()
+    return {
+        normalize(path)
+        for path in result.stdout.split("\0")
+        if path and normalize(path).startswith(IMMUTABLE_PREFIXES)
+    }
+
+
+def default_protected_ref(root: Path) -> str:
+    """Prefer the shared main baseline for local staged validation."""
+    for ref in ("refs/remotes/origin/main", "refs/heads/main", "HEAD"):
+        result = run_git(root, ["rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}"], check=False)
+        if result.returncode == 0:
+            return ref
+    return "HEAD"
+
+
+def validate_repository(
+    root: Path,
+    changes: Sequence[Change],
+    trivial: bool = False,
+    protected_immutable: set[str] | None = None,
+) -> list[str]:
     errors: list[str] = []
     changed = {change.path for change in changes if change.status != "D"}
+    if protected_immutable is None:
+        # Preserve strict behavior for direct callers. CLI callers supply the
+        # accepted base so records created in an unmerged branch can evolve.
+        protected_immutable = {
+            change.path
+            for change in changes
+            if change.path.startswith(IMMUTABLE_PREFIXES) and change.status != "A"
+        }
 
     if trivial:
         invalid = sorted(path for path in changed if Path(path).suffix.lower() != ".md")
@@ -294,7 +343,7 @@ def validate_repository(root: Path, changes: Sequence[Change], trivial: bool = F
     for change in changes:
         if change.path in FROZEN_FILES and change.status != "A":
             errors.append(f"frozen baseline must not be modified: {change.path}")
-        if change.path.startswith(IMMUTABLE_PREFIXES) and change.status not in {"A"}:
+        if change.path in protected_immutable and change.status not in {"A"}:
             errors.append(f"immutable record must be superseded, not modified/deleted: {change.path}")
         if change.status == "D" and change.path.startswith(("docs/issues/", "docs/recovery/")):
             errors.append(f"historical evidence must not be deleted: {change.path}")
@@ -405,14 +454,22 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     if args.all:
         changes = all_changes(root)
+        protected_immutable: set[str] = set()
     else:
         try:
             changes = git_changes(root, args.base, args.staged)
+            protected_ref = args.base or default_protected_ref(root)
+            protected_immutable = immutable_paths_at_ref(root, protected_ref)
         except (ValueError, subprocess.CalledProcessError) as exc:
             parser.error(str(exc))
 
     trivial = os.environ.get("GOVERNANCE_TRIVIAL", "").lower() in {"1", "true", "yes"}
-    errors = validate_repository(root, changes, trivial=trivial)
+    errors = validate_repository(
+        root,
+        changes,
+        trivial=trivial,
+        protected_immutable=protected_immutable,
+    )
     if errors:
         print("Governance check failed:", file=sys.stderr)
         for error in errors:

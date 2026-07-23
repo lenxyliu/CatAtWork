@@ -9,7 +9,7 @@
 - BC: BC-010
 - ADR: ADR-0004
 - Design: TEST-AND-RELEASE
-- TR: TR-CI-20260723-001
+- TR: TR-CI-20260723-001, TR-CI-20260723-003
 
 ## Purpose
 
@@ -47,6 +47,8 @@ documented path.
 TR-CI-20260723-001 records local governance fixtures, Swift build/tests and
 workflow policy checks against the final governed digest. Hosted Actions
 verification remains required before ISSUE-007 can become `fixed`.
+TR-CI-20260723-003 refreshes that local evidence after the governance
+lifecycle correction changed executable scripts.
 
 ## Rollback
 
@@ -59,3 +61,5 @@ toolchain.
 
 - 2026-07-23: opened after baseline run `29977724140` exposed the Swift
   5.10/6.0 mismatch; hosted verification pending.
+- 2026-07-23: linked fresh TR-CI-20260723-003 after the PR governance checker
+  changed; the earlier execution remains preserved.

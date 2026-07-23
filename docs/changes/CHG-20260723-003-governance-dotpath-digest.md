@@ -9,7 +9,7 @@
 - BC: BC-011
 - ADR: ADR-0005
 - Design: TEST-AND-RELEASE
-- TR: TR-CI-20260723-001
+- TR: TR-CI-20260723-001, TR-CI-20260723-003
 
 ## Purpose
 
@@ -45,6 +45,8 @@ older values because previously omitted governed files are now included.
 
 TR-CI-20260723-001 must record all 10 governance fixtures and a fresh digest
 that changes when the CI workflow changes.
+TR-CI-20260723-003 reruns the expanded 12-fixture suite against the final
+checker digest.
 
 ## Rollback
 
@@ -58,3 +60,5 @@ in the digest.
   digest.
 - 2026-07-23: all 10 governance fixtures passed; corrected governed digest is
   `b7d463ec4d7c7800b17a6a8dcb04250da0cc7e5341d26d7096c34ed8848e7371`.
+- 2026-07-23: linked TR-CI-20260723-003 after the lifecycle regression tests
+  extended the checker suite; previous evidence remains unchanged.

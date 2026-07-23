@@ -9,7 +9,7 @@
 - BC: BC-012
 - ADR: ADR-0006
 - Design: TEST-AND-RELEASE
-- TR: TR-CI-20260723-002
+- TR: TR-CI-20260723-002, TR-CI-20260723-003
 
 ## Purpose
 
@@ -46,6 +46,8 @@ Python distribution cache and PyPI.
 TR-CI-20260723-002 records local validation with the developer environment
 and the final governed digest. Hosted Python 3.13/Pillow 12.3.0 verification
 is required before ISSUE-009 can become `fixed`.
+TR-CI-20260723-003 refreshes local high-frame, source and Swift evidence after
+the governance checker changed.
 
 ## Rollback
 
@@ -56,3 +58,5 @@ ADR/CHG if setup-python or Pillow must change.
 ## Revision log
 
 - 2026-07-23: opened after hosted Pillow import failure; rerun pending.
+- 2026-07-23: linked fresh TR-CI-20260723-003 without overwriting the earlier
+  dependency-resolution execution.
