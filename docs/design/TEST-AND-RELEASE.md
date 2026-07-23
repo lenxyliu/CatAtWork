@@ -49,6 +49,20 @@ validation prefers `refs/remotes/origin/main`, then local `main`, so it applies
 the same accepted-record boundary without freezing records that exist only on
 the current feature branch.
 
+## Remote enforcement availability
+
+The private GitHub repository permits only squash merge and deletes a feature
+branch after merge. Protected `main` must additionally require PRs plus the
+`governance` and `swift` checks, and must reject force-push and deletion.
+
+Those server-side controls are a release gate, not a convention. If the
+current GitHub plan cannot protect a private repository, local hooks and
+passing Actions remain useful evidence but are not equivalent enforcement.
+Merging pauses until the owner enables a plan that supports private-repository
+protection, changes visibility explicitly, or records a time-bounded exception
+through a new CHG/ADR. Automation must never change billing or repository
+visibility on the owner's behalf.
+
 ## Release gate
 
 No version tag or Release is created until required automatic and device cases pass, all release artifacts have verified checksums, signing/DMG validation succeeds, and every release-blocking high-priority ISSUE is closed.
@@ -62,3 +76,4 @@ No version tag or Release is created until required automatic and device cases p
 | 2026-07-23 | CHG-20260723-003 | Corrected dot-path normalization so hooks, workflows and root dotfiles invalidate stale TR evidence. |
 | 2026-07-23 | CHG-20260723-004 | Declared Python 3.13 and pinned Pillow for hosted package/asset validation. |
 | 2026-07-23 | CHG-20260723-005 | Bound immutability to records accepted by protected main while allowing evidence refinement inside an unmerged PR. |
+| 2026-07-23 | CHG-20260723-006 | Applied available squash-only merge settings and made private-repository protection availability an explicit blocking gate. |

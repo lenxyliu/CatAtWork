@@ -8,6 +8,10 @@ This repository uses a design-to-release evidence chain:
 
 - The one-time recovered baseline may be created on `main`. After its first push, all work uses `codex/<purpose>` branches and pull requests.
 - Protect `main`: disallow deletion and force-push, require PR review, `governance` and test checks, and squash merge.
+- If the hosting plan cannot enforce branch protection for a private
+  repository, merging pauses. Do not silently make the repository public or
+  treat local hooks as equivalent; record the external limitation and obtain
+  an explicit owner decision.
 - One defect or coherent design change per branch. Split unrelated work even if it was discovered during the same review.
 - A PR is not complete while its ISSUE/BC is `fixed-unverified`, its TR digest is stale, or required real-device acceptance is absent.
 
@@ -32,6 +36,8 @@ Templates in `docs/templates/` define required fields. IDs are allocated by choo
 - `fixed`: automated acceptance passed and is linked.
 - `device-pending`: automated acceptance passed but explicit real-device acceptance remains.
 - `closed`: all required automated and device/release evidence is present.
+- `blocked-external`: implementation is ready but a named hosting, account,
+  permission, hardware or owner decision prevents the required gate.
 - `wont-fix` / `duplicate`: retained with rationale and links; never deleted.
 
 ## Required scope
@@ -57,4 +63,3 @@ Put that exact value in `Content-SHA256` of the TR. If governed code, tests, pro
 ## Release gate
 
 A version tag or GitHub Release requires all automated checks, mandatory real-device cases, archive checksums, signature/DMG verification, and closure of all release-blocking high-priority issues. Release artifacts stay outside Git and are listed in an immutable manifest.
-
