@@ -4,6 +4,11 @@ All user-visible changes are summarized here. Implementation and test evidence l
 
 ## Unreleased
 
+- Unified custom `.catpet` behavior: missing actions now use documented
+  semantic fallbacks or stay unavailable, custom poses and `nextAnimation`
+  are honored, pixel density no longer changes desktop size, pet switching
+  starts a fresh session, and transparent margins no longer intercept input
+  ([CHG-20260723-011](docs/changes/CHG-20260723-011-pet-package-session-contract.md)).
 - Fixed mixed-priority action queues so every selected action receives legal
   pose transitions from the pet's actual current pose, without another action
   splitting the transition from its target

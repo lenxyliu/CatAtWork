@@ -24,4 +24,4 @@ CatAtWork is split into a deterministic, platform-neutral runtime and a thin mac
 | Date | CHG | Revision |
 | --- | --- | --- |
 | 2026-07-23 | CHG-20260723-001 | Established target module boundaries and single-state invariant. |
-
+| 2026-07-23 | CHG-20260723-011 | Made validated package publication an atomic controller session boundary pending the full runtime reducer extraction. |

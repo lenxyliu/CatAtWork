@@ -9,6 +9,8 @@ struct SettingsView: View {
     @AppStorage("systemAwareness") private var systemAwareness = true
     @AppStorage("mediaAwareness") private var mediaAwareness = false
     @AppStorage("petScale") private var petScale = 0.45
+    @AppStorage("currentPetSupportsThrow") private var currentPetSupportsThrow = true
+    @AppStorage("currentPetSupportsLocomotion") private var currentPetSupportsLocomotion = true
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
     @State private var accessibilityGranted = AXIsProcessTrusted()
     @State private var inputMonitoringGranted = CGPreflightListenEventAccess()
@@ -34,7 +36,14 @@ struct SettingsView: View {
                         .frame(width: 44, alignment: .trailing)
                 }
                 Toggle("偶尔靠近鼠标玩耍", isOn: $chasePointer)
+                    .disabled(!currentPetSupportsLocomotion)
                 Toggle("允许抱起和抛掷", isOn: $throwEnabled)
+                    .disabled(!currentPetSupportsThrow)
+                if !currentPetSupportsLocomotion || !currentPetSupportsThrow {
+                    Text("当前宠物包未提供部分动作，因此相应互动已停用。")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
             Section("本地系统感知") {
                 Toggle("根据应用和窗口类型回应", isOn: $systemAwareness)

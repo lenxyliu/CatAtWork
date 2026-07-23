@@ -5,7 +5,7 @@ The root `ISSUE-CLASSIFICATION.md` is a frozen pre-governance snapshot. Its rows
 | ID | Priority | Status | Summary | Badcase | Planned branch |
 | --- | --- | --- | --- | --- | --- |
 | ISSUE-001 | P1 | fixed | Priority reordering can invalidate pose transitions precomputed at enqueue | BC-001; TR-ACTION-20260723-001 | `codex/action-state-machine` |
-| ISSUE-002 | P1 | open | `.catpet` capability/pose/next/scale/fallback contract is inconsistently applied | BC-002, BC-003, BC-004 | `codex/pet-package-contract` |
+| ISSUE-002 | P1 | fixed | `.catpet` capability/pose/next/scale/fallback contract is inconsistently applied | BC-002, BC-003, BC-004; TR-PACKAGE-20260723-002 | `codex/pet-package-contract` |
 | ISSUE-003 | P1 | open | Import/image work can block the main thread; process pipes and texture loads are unsafe | BC-005, BC-006 | `codex/background-asset-io` |
 | ISSUE-004 | P2 | open | Window controller duplicates runtime state and prevents focused App integration tests | BC-007 | `codex/runtime-controller-split` |
 | ISSUE-005 | P0 | closed | Loose Git objects and build/history artifacts were preserved, remotely verified and cleaned | BC-008; TR-RECOVERY-20260723-002 | baseline |
