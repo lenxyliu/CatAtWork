@@ -22,6 +22,7 @@ These rules apply to every AI agent, script, and automated change in this reposi
 ## Defect discovery and analysis
 
 - GitHub Issues in `lenxyliu/CatAtWork` are the source of truth for active defects. The master visual-defect register is GitHub issue `#15`.
+- Work under the visual-remediation program must begin by reading `docs/plans/PLAN-20260724-PET-VISUAL-REMEDIATION.md`. Use one bounded plan batch per branch and primary Codex task, and update the plan handoff ledger before ending that batch.
 - Before continuing analysis of a newly observed defect, search GitHub Issues. Add evidence to an existing issue when the symptom and root-cause scope match; otherwise create a new issue and link it from `#15`.
 - Keep confirmed facts, direct evidence, root-cause hypotheses, and pending verification explicitly separated. Never present a hypothesis as a confirmed cause.
 - Append dated evidence and analysis updates. Do not delete failed evidence or rewrite history to make a defect appear resolved.
