@@ -8,8 +8,9 @@
 - Master-Register: https://github.com/lenxyliu/CatAtWork/issues/15
 - Child-Issues: #9–#14 and #16–#21
 - Current-Production-Evidence: `assetVersion 2026.07.23.6`
-- Current-Checkpoint: local branch `codex/visual-defect-tracking-rule`,
-  governance-rule commit `1091541`; push, PR, and merge are pending
+- Current-Checkpoint: local branch `codex/visual-defect-tracking-rule`;
+  governance rule `1091541` and plan `8fa4db7` are committed; push, PR, and
+  merge are pending
 
 ## 1. Objective
 
@@ -94,7 +95,7 @@ asset package from B4.
 - Branch: `codex/visual-defect-tracking-rule`
 - Primary record: GitHub #15
 - Product changes: none
-- Current status: in progress; local governance commit exists, remote branch
+- Current status: local-ready; governance and plan commits exist, remote branch
   and PR do not
 
 Deliverables:
@@ -514,7 +515,7 @@ Update rows and append dated events; do not erase a failed or superseded event.
 
 | Batch | Status | Branch/checkpoint | Evidence/records | Single next action |
 | --- | --- | --- | --- | --- |
-| B0 | in-progress | `codex/visual-defect-tracking-rule`; `1091541` | CHG-20260724-001; TR-GOVERNANCE-20260724-001; CHG-20260724-002 | Validate and commit this plan, then push/open the governance PR |
+| B0 | local-ready | `codex/visual-defect-tracking-rule`; plan `8fa4db7` | CHG-20260724-001/002; TR-GOVERNANCE-20260724-001/002/003 | Push the branch and open the governance PR |
 | B1 | blocked-by-B0 | not started | GitHub #9–#21 | Start from merged B0 and create current-build BC mapping |
 | B2 | blocked-by-B1 | not started | GitHub #14 | Draft ADR and failing metric fixtures |
 | B3 | blocked-by-B2 | not started | GitHub #9/#11/#12/#16/#17/#21 | Decide canonical scale/root/pose compatibility contract |
@@ -528,6 +529,8 @@ Update rows and append dated events; do not erase a failed or superseded event.
 
 - 2026-07-24: created after reviewing GitHub #9–#21, their comments, the
   relevant repository design documents, and legacy visual badcases.
+- 2026-07-24: plan validated and committed as `8fa4db7`; B0 is ready for push
+  and a governance PR.
 
 ## 10. Plan revision rules
 

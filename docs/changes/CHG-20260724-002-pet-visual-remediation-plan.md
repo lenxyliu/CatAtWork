@@ -9,7 +9,7 @@
 - BC: none
 - ADR: none
 - Design: AGENTS.md; docs/plans/PLAN-20260724-PET-VISUAL-REMEDIATION.md
-- TR: TR-GOVERNANCE-20260724-002
+- TR: TR-GOVERNANCE-20260724-002; TR-GOVERNANCE-20260724-003
 
 ## Purpose
 
@@ -53,7 +53,8 @@ future records but does not replace them.
 
 ## Test evidence
 
-TR-GOVERNANCE-20260724-002 records whitespace and staged governance checks.
+TR-GOVERNANCE-20260724-002 records the initial plan validation.
+TR-GOVERNANCE-20260724-003 records the post-commit handoff-checkpoint update.
 Product tests are not required because this change only adds Markdown planning
 and workflow guidance.
 
@@ -67,3 +68,5 @@ historical evidence.
 
 - 2026-07-24: created and completed with the first durable execution and
   cross-task handoff plan.
+- 2026-07-24: refreshed the B0 ledger after the plan commit and retained both
+  immutable governance test runs.
