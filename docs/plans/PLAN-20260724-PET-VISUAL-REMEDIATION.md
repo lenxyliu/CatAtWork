@@ -457,7 +457,10 @@ The active task must:
 7. commit intended durable files so a new task does not depend on an untracked
    local note;
 8. leave the worktree clean, or explicitly list every intentional uncommitted
-   path and why it remains.
+   path and why it remains; and
+9. fill `docs/templates/CODEX-BATCH-HANDOFF-TEMPLATE.md`, select exactly one
+   next-task route, and place the resolved handoff plus copyable Prompt in the
+   final response.
 
 ### At the start of a new batch task
 
@@ -491,6 +494,35 @@ the batch exit gates, update the GitHub issues and plan handoff ledger, then
 commit the bounded result. Do not begin the next batch.
 ```
 
+### Mandatory next-task route decision
+
+At every batch completion, pause, or blocker, choose exactly one:
+
+| Route | Use when | Do not use when |
+| --- | --- | --- |
+| `CONTINUE_CURRENT` | The same bounded batch is still in progress, recent reasoning is needed, the transcript remains focused, and no PR/subsystem boundary was crossed. | The next action belongs to another batch or the transcript is dominated by old logs and unrelated exploration. |
+| `NEW_LOCAL_TASK` | Default at a batch/PR boundary; the next work is sequential; native app/device state, one running pet instance, or the main local checkout is needed. | Independent work must proceed without disturbing an active local branch. |
+| `NEW_WORKTREE` | The next batch is independent, starts from an exact committed base, uses a distinct branch, and can be built/tested in isolation. | The same branch is checked out elsewhere, the base is uncommitted, or native validation depends on the one Local app instance. |
+| `STOP_BLOCKED` | A required merge, CI result, external permission, hardware, evidence, or clean checkpoint is missing. | Meaningful safe work can still continue inside the current authorized batch. |
+
+The route decision is mandatory even when no implementation changed. A new
+task solves context isolation; a Worktree solves filesystem/branch isolation.
+Do not recommend a Worktree merely to reduce token use.
+
+The generated Prompt must resolve all of these fields:
+
+- completed batch and evidence status;
+- exact repository, branch, base commit, and latest durable commit;
+- next batch, primary Issues, scope, and explicit non-goals;
+- required first reads and first verification commands;
+- whether a new branch must be created before edits;
+- required tests/evidence and the batch exit gate;
+- required GitHub/plan/CHG/ADR/TR updates;
+- instruction to generate the following task's route and Prompt at the end.
+
+If an exact commit or required merge result is unknown, select `STOP_BLOCKED`
+instead of emitting a misleading Prompt with placeholders.
+
 ## 8. Codex task and context policy
 
 - Use the current task for planning, decisions, and one bounded implementation
@@ -508,6 +540,12 @@ commit the bounded result. Do not begin the next batch.
 - When moving the same Codex task between Local and Worktree, use the app's
   Handoff flow. When starting a new task, use the copyable prompt above and an
   exact commit rather than assuming transcript inheritance.
+- B0 through B4 and B8 default to sequential `NEW_LOCAL_TASK` handoffs. B5,
+  B6, and B7 may use separate Worktrees only after their accepted base exists
+  and only when the user actually wants parallel work.
+- Native screen recording, refresh-rate acceptance, and other checks that
+  require the single user-facing app instance should run in Local. A task may
+  use Handoff from Worktree to Local for that final validation.
 
 ## 9. Progress and handoff ledger
 
@@ -531,6 +569,9 @@ Update rows and append dated events; do not erase a failed or superseded event.
   relevant repository design documents, and legacy visual badcases.
 - 2026-07-24: plan validated and committed as `8fa4db7`; B0 is ready for push
   and a governance PR.
+- 2026-07-24: made end-of-batch route selection and next-Prompt generation a
+  mandatory handoff artifact; defaulted sequential batches to new Local tasks
+  and restricted Worktrees to independent work.
 
 ## 10. Plan revision rules
 
@@ -547,3 +588,4 @@ Update rows and append dated events; do not erase a failed or superseded event.
 | Date | CHG | Revision |
 | --- | --- | --- |
 | 2026-07-24 | CHG-20260724-002 | Created the dependency-ordered repair program and cross-task handoff protocol. |
+| 2026-07-24 | CHG-20260724-002 | Required an explicit next-task route and fully resolved Prompt at every batch boundary. |

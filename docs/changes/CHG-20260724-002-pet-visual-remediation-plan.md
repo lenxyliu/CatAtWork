@@ -9,7 +9,7 @@
 - BC: none
 - ADR: none
 - Design: AGENTS.md; docs/plans/PLAN-20260724-PET-VISUAL-REMEDIATION.md
-- TR: TR-GOVERNANCE-20260724-002; TR-GOVERNANCE-20260724-003
+- TR: TR-GOVERNANCE-20260724-002; TR-GOVERNANCE-20260724-003; TR-GOVERNANCE-20260724-004
 
 ## Purpose
 
@@ -41,6 +41,9 @@ future ADR, design revision, CHG, badcase, and content-matched TR.
 - Define a one-primary-task-per-batch working model and a durable handoff
   protocol based on branch, commit, GitHub issues, repository records, and an
   append-only progress ledger.
+- Add a mandatory end-of-batch route decision and Prompt template that chooses
+  between continuing the current task, a fresh Local task, an isolated
+  Worktree task, or a blocked stop.
 - Reference the plan from `AGENTS.md` so a new task discovers it
   automatically.
 - Index the new `docs/plans/` record class.
@@ -55,6 +58,7 @@ future records but does not replace them.
 
 TR-GOVERNANCE-20260724-002 records the initial plan validation.
 TR-GOVERNANCE-20260724-003 records the post-commit handoff-checkpoint update.
+TR-GOVERNANCE-20260724-004 records the automatic route/Prompt handoff rule.
 Product tests are not required because this change only adds Markdown planning
 and workflow guidance.
 
@@ -70,3 +74,5 @@ historical evidence.
   cross-task handoff plan.
 - 2026-07-24: refreshed the B0 ledger after the plan commit and retained both
   immutable governance test runs.
+- 2026-07-24: added the mandatory end-of-batch task/worktree routing decision
+  and fully resolved next-Prompt template.
