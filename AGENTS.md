@@ -19,6 +19,19 @@ These rules apply to every AI agent, script, and automated change in this reposi
 - Keep the ISSUE and BC status at `fixed-unverified` until a passing, content-matched TR exists. Use `fixed` only after automated verification; keep real-device acceptance as a separate status when required.
 - Preserve failed tests. A rerun is a new TR, never an edit that erases the failure.
 
+## Defect discovery and analysis
+
+- GitHub Issues in `lenxyliu/CatAtWork` are the source of truth for active defects. The master visual-defect register is GitHub issue `#15`.
+- Work under the visual-remediation program must begin by reading `docs/plans/PLAN-20260724-PET-VISUAL-REMEDIATION.md`. Use one bounded plan batch per branch and primary Codex task, and update the plan handoff ledger before ending that batch.
+- Before the final response of every visual-remediation batch or blocking handoff, fill `docs/templates/CODEX-BATCH-HANDOFF-TEMPLATE.md`: choose exactly one route (`CONTINUE_CURRENT`, `NEW_LOCAL_TASK`, `NEW_WORKTREE`, or `STOP_BLOCKED`) and provide a fully resolved, copyable Prompt for the next task. Do not leave branch, commit, Issue, scope, or exit-gate placeholders unresolved.
+- Before continuing analysis of a newly observed defect, search GitHub Issues. Add evidence to an existing issue when the symptom and root-cause scope match; otherwise create a new issue and link it from `#15`.
+- Keep confirmed facts, direct evidence, root-cause hypotheses, and pending verification explicitly separated. Never present a hypothesis as a confirmed cause.
+- Append dated evidence and analysis updates. Do not delete failed evidence or rewrite history to make a defect appear resolved.
+- Every defect issue must contain reproduction evidence, expected and actual behavior, impact, a solution direction, and measurable acceptance criteria.
+- Do not mark a defect fixed without content-matched automated evidence. Record native-screen/device acceptance separately from automated status.
+- Do not publish private screen-recording content or local absolute paths in a public issue. Record only the minimum pet-related timestamps; crop and redact evidence before governed publication.
+- An analysis-only request authorizes defect discovery, solution design, and acceptance design, but not production code or asset changes.
+
 ## Before handing off or opening a PR
 
 1. Run `python3 Scripts/check_governance.py --base <merge-base>`.
@@ -28,4 +41,3 @@ These rules apply to every AI agent, script, and automated change in this reposi
 5. Confirm no generated previews, build products, applications, DMGs, credentials, or non-LFS production rasters are staged.
 
 The only trivial exemption is a PR labeled `governance:trivial` whose diff consists exclusively of Markdown spelling, formatting, or whitespace. Executable code, tests, scripts, configuration, schemas, hooks, workflows, and binary assets can never use this exemption.
-
