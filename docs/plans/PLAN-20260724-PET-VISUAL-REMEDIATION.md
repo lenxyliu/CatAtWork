@@ -553,9 +553,9 @@ Update rows and append dated events; do not erase a failed or superseded event.
 
 | Batch | Status | Branch/checkpoint | Evidence/records | Single next action |
 | --- | --- | --- | --- | --- |
-| B0 | local-ready | `codex/visual-defect-tracking-rule`; plan `8fa4db7` | CHG-20260724-001/002; TR-GOVERNANCE-20260724-001/002/003 | Push the branch and open the governance PR |
-| B1 | blocked-by-B0 | not started | GitHub #9–#21 | Start from merged B0 and create current-build BC mapping |
-| B2 | blocked-by-B1 | not started | GitHub #14 | Draft ADR and failing metric fixtures |
+| B0 | complete | `main@0ca2b518d5a079ace1ef1e6d9a6892a5259b080e` | CHG-20260724-001/002; TR-GOVERNANCE-20260724-001..004 | Preserve the accepted checkpoint |
+| B1 | local-ready | `codex/pet-visual-baseline` from `0ca2b518d5a079ace1ef1e6d9a6892a5259b080e` | ISSUE-015..026; BC-018..029; CHG-20260724-003; TR-VISUAL-20260724-001..011; evidence manifest `1c037439b73fa07fa188b20efd8f08f5fcc24b547ba9d2a1e6124fd645bee0d6` | Push the branch and open the B1 evidence PR |
+| B2 | blocked-by-unmerged-B1 | not started | GitHub #14; B1 current-confirmed baseline | Wait for B1 to merge; do not draft gates from an unaccepted base |
 | B3 | blocked-by-B2 | not started | GitHub #9/#11/#12/#16/#17/#21 | Decide canonical scale/root/pose compatibility contract |
 | B4 | blocked-by-B3 | not started | GitHub #9/#10/#11/#12/#16/#17/#21 | Freeze identity references before changing production frames |
 | B5 | blocked-by-B2 | not started | GitHub #13/#18 | Reproduce all locomotion entry paths with synchronized logs |
@@ -572,6 +572,21 @@ Update rows and append dated events; do not erase a failed or superseded event.
 - 2026-07-24: made end-of-batch route selection and next-Prompt generation a
   mandatory handoff artifact; defaulted sequential batches to new Local tasks
   and restricted Worktrees to independent work.
+- 2026-07-24: B0 was merged to `main` as
+  `0ca2b518d5a079ace1ef1e6d9a6892a5259b080e`; B1 started from that exact clean
+  base on `codex/pet-visual-baseline`.
+- 2026-07-24: B1 classified GitHub #9–#14, #16–#19 and #21 as
+  `current-confirmed`, and #20 as `historical-regression`; no scoped Issue
+  remains `pending-risk`. Stable identities ISSUE-015..026 and BC-018..029
+  were allocated.
+- 2026-07-24: B1 bound the clean app and asset 2026.07.23.6 to package digest
+  `fed6c517ce352b00cb97479a922d897c77417a6f4f5c1110c0e874463b2118b8`,
+  reviewed all 31 action endpoints, sampled every required locomotion entry at
+  60/120 Hz, reproduced #19 under delay injection, and established a passing
+  current-build gaze/body baseline for #20.
+- 2026-07-24: child Issues and master register #15 received B1 evidence
+  comments recorded by TR-GITHUB-20260724-003. B1 ends at the PR boundary;
+  B2 remains blocked until this branch is accepted and merged.
 
 ## 10. Plan revision rules
 
@@ -589,3 +604,4 @@ Update rows and append dated events; do not erase a failed or superseded event.
 | --- | --- | --- |
 | 2026-07-24 | CHG-20260724-002 | Created the dependency-ordered repair program and cross-task handoff protocol. |
 | 2026-07-24 | CHG-20260724-002 | Required an explicit next-task route and fully resolved Prompt at every batch boundary. |
+| 2026-07-24 | CHG-20260724-003 | Completed the content-matched B1 classification, evidence identities, issue updates and B2 merge dependency. |
