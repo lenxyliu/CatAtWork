@@ -1,0 +1,98 @@
+{
+  "contractVersion": 2,
+  "petId": "synthetic-cat",
+  "displayName": "Synthetic Cat",
+  "author": "CatAtWork tests",
+  "description": "Governed synthetic canonical asset-contract fixture.",
+  "minimumAppVersion": "1.0.0",
+  "assetVersion": "fixture-v2",
+  "pixelsPerBodyUnit": 220,
+  "minimumFramesPerAnimation": 2,
+  "authoredCanvas": {
+    "width": 64,
+    "height": 64,
+    "safeMargin": 4
+  },
+  "colorSpace": {
+    "name": "sRGB",
+    "pixelFormat": "RGBA8",
+    "alphaMode": "straight",
+    "conversion": "identity"
+  },
+  "componentPolicy": {
+    "default": "forbid",
+    "alphaThreshold": 12,
+    "minimumArea": 4,
+    "connectivity": 8,
+    "exceptions": []
+  },
+  "identityRig": {
+    "views": [
+      {
+        "id": "front",
+        "referenceAnimation": "idle",
+        "referenceFrame": 0,
+        "landmarks": {
+          "leftEyeCenter": {"x": 27, "y": 27},
+          "rightEyeCenter": {"x": 37, "y": 27},
+          "leftEarRoot": {"x": 24, "y": 21},
+          "rightEarRoot": {"x": 40, "y": 21},
+          "nose": {"x": 32, "y": 33},
+          "mouth": {"x": 32, "y": 36},
+          "shoulder": {"x": 32, "y": 39},
+          "hip": {"x": 32, "y": 46},
+          "leftForelimbJoint": {"x": 26, "y": 44},
+          "rightForelimbJoint": {"x": 38, "y": 44},
+          "leftHindlimbJoint": {"x": 27, "y": 49},
+          "rightHindlimbJoint": {"x": 37, "y": 49},
+          "tailRoot": {"x": 43, "y": 45}
+        },
+        "contours": {
+          "headOutline": [
+            {"x": 23, "y": 20},
+            {"x": 41, "y": 20},
+            {"x": 44, "y": 35},
+            {"x": 32, "y": 39},
+            {"x": 20, "y": 35}
+          ],
+          "faceMaskOutline": [
+            {"x": 25, "y": 24},
+            {"x": 39, "y": 24},
+            {"x": 40, "y": 34},
+            {"x": 32, "y": 37},
+            {"x": 24, "y": 34}
+          ]
+        },
+        "materialROIs": {
+          "coat": {"x": 26, "y": 39, "width": 12, "height": 9},
+          "faceMask": {"x": 25, "y": 24, "width": 14, "height": 12}
+        }
+      }
+    ]
+  },
+  "actions": [
+    {
+      "id": "idle",
+      "loop": true,
+      "fps": 12,
+      "startPose": "seated",
+      "endPose": "seated",
+      "frameMetadata": [
+        {
+          "rootAnchor": {"x": 32, "y": 52},
+          "supportAnchors": [
+            {"id": "leftHindFoot", "point": {"x": 27, "y": 52}, "contact": true},
+            {"id": "rightHindFoot", "point": {"x": 37, "y": 52}, "contact": true}
+          ]
+        },
+        {
+          "rootAnchor": {"x": 32, "y": 52},
+          "supportAnchors": [
+            {"id": "leftHindFoot", "point": {"x": 27, "y": 52}, "contact": true},
+            {"id": "rightHindFoot", "point": {"x": 37, "y": 52}, "contact": true}
+          ]
+        }
+      ]
+    }
+  ]
+}

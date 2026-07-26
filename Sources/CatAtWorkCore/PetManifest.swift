@@ -50,6 +50,16 @@ public struct PetFrame: Codable, Hashable, Sendable {
     public var duration: Double
     /// Authoring-time identity calibration. It restores canonical body scale; it is never a fit-to-cell value.
     public var bodyScale: Double?
+    /// Format-2 anatomical root in fixed authored-canvas pixels.
+    public var rootAnchor: PixelPoint?
+    /// Format-2 named support/contact points in fixed authored-canvas pixels.
+    public var supportAnchors: [PetSupportAnchor]?
+    /// Format-2 canonical straight-RGBA source digest.
+    public var sourcePixelSHA256: String?
+    /// Format-2 digest of the exact atlas rectangle. It must equal the source digest.
+    public var atlasPixelSHA256: String?
+    /// The one reviewed exception authorizing a material secondary component.
+    public var componentExceptionReviewId: String?
 
     public init(
         image: String,
@@ -60,7 +70,12 @@ public struct PetFrame: Codable, Hashable, Sendable {
         pivot: NormalizedPoint,
         renderOffset: PixelPoint? = nil,
         duration: Double,
-        bodyScale: Double? = nil
+        bodyScale: Double? = nil,
+        rootAnchor: PixelPoint? = nil,
+        supportAnchors: [PetSupportAnchor]? = nil,
+        sourcePixelSHA256: String? = nil,
+        atlasPixelSHA256: String? = nil,
+        componentExceptionReviewId: String? = nil
     ) {
         self.image = image
         self.sourceSize = sourceSize
@@ -71,6 +86,11 @@ public struct PetFrame: Codable, Hashable, Sendable {
         self.renderOffset = renderOffset
         self.duration = duration
         self.bodyScale = bodyScale
+        self.rootAnchor = rootAnchor
+        self.supportAnchors = supportAnchors
+        self.sourcePixelSHA256 = sourcePixelSHA256
+        self.atlasPixelSHA256 = atlasPixelSHA256
+        self.componentExceptionReviewId = componentExceptionReviewId
     }
 }
 
@@ -86,17 +106,24 @@ public struct PetAnimation: Codable, Hashable, Sendable {
     public var nextAnimation: String?
     public var startPose: String?
     public var endPose: String?
+    public var startPoseSignature: PetPoseSignature?
+    public var endPoseSignature: PetPoseSignature?
     public var loopStartFrame: Int?
     public var frames: [PetFrame]
 
     public init(id: String, loopMode: LoopMode, nextAnimation: String? = nil,
-                startPose: String? = nil, endPose: String? = nil, loopStartFrame: Int? = nil,
+                startPose: String? = nil, endPose: String? = nil,
+                startPoseSignature: PetPoseSignature? = nil,
+                endPoseSignature: PetPoseSignature? = nil,
+                loopStartFrame: Int? = nil,
                 frames: [PetFrame]) {
         self.id = id
         self.loopMode = loopMode
         self.nextAnimation = nextAnimation
         self.startPose = startPose
         self.endPose = endPose
+        self.startPoseSignature = startPoseSignature
+        self.endPoseSignature = endPoseSignature
         self.loopStartFrame = loopStartFrame
         self.frames = frames
     }
@@ -121,6 +148,10 @@ public struct PetManifest: Codable, Hashable, Sendable {
     public var minimumAppVersion: String
     public var assetVersion: String?
     public var pixelsPerBodyUnit: Double
+    public var authoredCanvas: AuthoredCanvas?
+    public var colorSpace: PetColorContract?
+    public var componentPolicy: PetComponentPolicy?
+    public var identityRig: CanonicalIdentityRig?
     public var animations: [PetAnimation]
     public var lookDirections: [LookDirection]
 
@@ -133,6 +164,10 @@ public struct PetManifest: Codable, Hashable, Sendable {
         minimumAppVersion: String = "1.0.0",
         assetVersion: String? = nil,
         pixelsPerBodyUnit: Double,
+        authoredCanvas: AuthoredCanvas? = nil,
+        colorSpace: PetColorContract? = nil,
+        componentPolicy: PetComponentPolicy? = nil,
+        identityRig: CanonicalIdentityRig? = nil,
         animations: [PetAnimation],
         lookDirections: [LookDirection]
     ) {
@@ -144,6 +179,10 @@ public struct PetManifest: Codable, Hashable, Sendable {
         self.minimumAppVersion = minimumAppVersion
         self.assetVersion = assetVersion
         self.pixelsPerBodyUnit = pixelsPerBodyUnit
+        self.authoredCanvas = authoredCanvas
+        self.colorSpace = colorSpace
+        self.componentPolicy = componentPolicy
+        self.identityRig = identityRig
         self.animations = animations
         self.lookDirections = lookDirections
     }
@@ -166,6 +205,12 @@ public enum PetManifestIssue: Error, Equatable, CustomStringConvertible {
     case tooManyFrames(animation: String, actual: Int)
     case invalidNextAnimation(String)
     case invalidPose(animation: String, pose: String)
+    case missingCanonicalMetadata(String)
+    case invalidCanonicalMetadata(String)
+    case invalidAnchor(animation: String, frame: Int)
+    case invalidEndpointSignature(String)
+    case invalidIdentityRig(String)
+    case invalidComponentPolicy(String)
 
     public var description: String {
         switch self {
@@ -185,6 +230,12 @@ public enum PetManifestIssue: Error, Equatable, CustomStringConvertible {
         case .tooManyFrames(let animation, let actual): "Animation \(animation) declares too many frames: \(actual)"
         case .invalidNextAnimation(let id): "Animation references an unknown nextAnimation: \(id)"
         case .invalidPose(let animation, let pose): "Animation \(animation) declares an unsupported pose: \(pose)"
+        case .missingCanonicalMetadata(let field): "Format 2 is missing canonical metadata: \(field)"
+        case .invalidCanonicalMetadata(let field): "Format 2 has invalid canonical metadata: \(field)"
+        case .invalidAnchor(let animation, let frame): "Animation \(animation) frame \(frame) has invalid canonical anchors."
+        case .invalidEndpointSignature(let animation): "Animation \(animation) has an invalid endpoint pose signature."
+        case .invalidIdentityRig(let field): "The canonical identity rig is invalid: \(field)"
+        case .invalidComponentPolicy(let field): "The disconnected-component policy is invalid: \(field)"
         }
     }
 }
@@ -193,7 +244,41 @@ public struct PetManifestValidator: Sendable {
     public init() {}
 
     public func validate(_ manifest: PetManifest, requireHighFrame: Bool) throws {
-        guard manifest.formatVersion == 1 else { throw PetManifestIssue.unsupportedVersion(manifest.formatVersion) }
+        guard (1...2).contains(manifest.formatVersion) else {
+            throw PetManifestIssue.unsupportedVersion(manifest.formatVersion)
+        }
+        let canonical = manifest.formatVersion == 2
+        let authoredCanvas: AuthoredCanvas?
+        let componentPolicy: PetComponentPolicy?
+        if canonical {
+            guard manifest.pixelsPerBodyUnit == PetPackageContract.referencePixelsPerBodyUnit else {
+                throw PetManifestIssue.invalidCanonicalMetadata("pixelsPerBodyUnit")
+            }
+            guard let canvas = manifest.authoredCanvas else {
+                throw PetManifestIssue.missingCanonicalMetadata("authoredCanvas")
+            }
+            guard canvas.width > 0, canvas.height > 0,
+                  canvas.width <= 8_192, canvas.height <= 8_192,
+                  canvas.safeMargin > 0,
+                  canvas.safeMargin * 2 < min(canvas.width, canvas.height) else {
+                throw PetManifestIssue.invalidCanonicalMetadata("authoredCanvas")
+            }
+            guard manifest.colorSpace == .canonicalSRGB else {
+                throw PetManifestIssue.invalidCanonicalMetadata("colorSpace")
+            }
+            guard let policy = manifest.componentPolicy else {
+                throw PetManifestIssue.missingCanonicalMetadata("componentPolicy")
+            }
+            try Self.validate(policy)
+            guard manifest.identityRig != nil else {
+                throw PetManifestIssue.missingCanonicalMetadata("identityRig")
+            }
+            authoredCanvas = canvas
+            componentPolicy = policy
+        } else {
+            authoredCanvas = nil
+            componentPolicy = nil
+        }
         let idPattern = /^[a-z0-9][a-z0-9-]{1,63}$/
         guard manifest.id.wholeMatch(of: idPattern) != nil else { throw PetManifestIssue.invalidIdentifier }
         guard (1...80).contains(manifest.displayName.count) else { throw PetManifestIssue.invalidMetadata("displayName") }
@@ -227,8 +312,14 @@ public struct PetManifestValidator: Sendable {
             if requireHighFrame, animation.frames.count < 24 {
                 throw PetManifestIssue.insufficientFrames(animation: animation.id, actual: animation.frames.count)
             }
-            for frame in animation.frames {
-                try Self.validate(frame, context: animation.id)
+            for (frameIndex, frame) in animation.frames.enumerated() {
+                try Self.validate(
+                    frame,
+                    context: animation.id,
+                    frameIndex: frameIndex,
+                    canonicalCanvas: authoredCanvas,
+                    componentPolicy: componentPolicy
+                )
             }
             if let nextAnimation = animation.nextAnimation { nextAnimationIDs.append(nextAnimation) }
             if let loopStart = animation.loopStartFrame,
@@ -241,23 +332,48 @@ public struct PetManifestValidator: Sendable {
             if let endPose = animation.endPose, PetPose(rawValue: endPose) == nil {
                 throw PetManifestIssue.invalidPose(animation: animation.id, pose: endPose)
             }
+            if canonical {
+                try Self.validateEndpointSignatures(animation)
+            }
         }
         guard animationIDs.contains("idle") else { throw PetManifestIssue.missingIdle }
         for nextAnimation in nextAnimationIDs where !animationIDs.contains(nextAnimation) {
             throw PetManifestIssue.invalidNextAnimation(nextAnimation)
+        }
+        if canonical, let canvas = authoredCanvas,
+            let identityRig = manifest.identityRig,
+           let policy = componentPolicy {
+            try Self.validate(identityRig, canvas: canvas, animations: manifest.animations)
+            try Self.validateExceptionBindings(
+                policy,
+                animations: manifest.animations,
+                lookDirections: manifest.lookDirections
+            )
         }
 
         if !manifest.lookDirections.isEmpty {
             let expected = (0..<16).map { Double($0) * 22.5 }
             let actual = manifest.lookDirections.map(\.degrees).sorted()
             guard actual == expected else { throw PetManifestIssue.invalidLookDirections }
-            for direction in manifest.lookDirections {
-                try Self.validate(direction.frame, context: "lookDirections")
+            for (frameIndex, direction) in manifest.lookDirections.enumerated() {
+                try Self.validate(
+                    direction.frame,
+                    context: "lookDirections",
+                    frameIndex: frameIndex,
+                    canonicalCanvas: authoredCanvas,
+                    componentPolicy: componentPolicy
+                )
             }
         }
     }
 
-    private static func validate(_ frame: PetFrame, context: String) throws {
+    private static func validate(
+        _ frame: PetFrame,
+        context: String,
+        frameIndex: Int,
+        canonicalCanvas: AuthoredCanvas?,
+        componentPolicy: PetComponentPolicy?
+    ) throws {
         guard isSafeResourcePath(frame.image) else { throw PetManifestIssue.invalidFramePath(frame.image) }
         guard frame.sourceSize.width > 0, frame.sourceSize.height > 0,
               frame.trimRect.width > 0, frame.trimRect.height > 0,
@@ -270,7 +386,54 @@ public struct PetManifestValidator: Sendable {
         guard (1.0 / 120.0)...1.0 ~= frame.duration else {
             throw PetManifestIssue.invalidFrameDuration(context)
         }
-        if let scale = frame.bodyScale, !(0.5...3.0).contains(scale) {
+        if let canonicalCanvas {
+            if let scale = frame.bodyScale, scale != 1 {
+                throw PetManifestIssue.invalidCanonicalMetadata("\(context).bodyScale")
+            }
+            guard frame.sourceSize == PixelSize(
+                width: canonicalCanvas.width,
+                height: canonicalCanvas.height
+            ) else {
+                throw PetManifestIssue.invalidCanonicalMetadata("\(context).sourceSize")
+            }
+            guard let root = frame.rootAnchor,
+                  Self.isValid(root, canvas: canonicalCanvas),
+                  let supports = frame.supportAnchors, !supports.isEmpty else {
+                throw PetManifestIssue.invalidAnchor(animation: context, frame: frameIndex)
+            }
+            var supportIDs = Set<String>()
+            for support in supports {
+                guard support.id.wholeMatch(of: /^[A-Za-z][A-Za-z0-9_-]{0,63}$/) != nil,
+                      supportIDs.insert(support.id).inserted,
+                      Self.isValid(support.point, canvas: canonicalCanvas) else {
+                    throw PetManifestIssue.invalidAnchor(animation: context, frame: frameIndex)
+                }
+            }
+            let expectedPivot = NormalizedPoint(
+                x: root.x / Double(canonicalCanvas.width),
+                y: root.y / Double(canonicalCanvas.height)
+            )
+            guard abs(frame.pivot.x - expectedPivot.x) <= 0.000_000_001,
+                  abs(frame.pivot.y - expectedPivot.y) <= 0.000_000_001 else {
+                throw PetManifestIssue.invalidAnchor(animation: context, frame: frameIndex)
+            }
+            guard let sourceDigest = frame.sourcePixelSHA256,
+                  let atlasDigest = frame.atlasPixelSHA256,
+                  Self.isCanonicalDigest(sourceDigest),
+                  sourceDigest == atlasDigest else {
+                throw PetManifestIssue.invalidCanonicalMetadata("\(context).pixelSHA256")
+            }
+            if let reviewID = frame.componentExceptionReviewId {
+                let matches = componentPolicy?.exceptions.filter {
+                    $0.reviewId == reviewID &&
+                        $0.animation == context &&
+                        $0.frames.contains(frameIndex)
+                } ?? []
+                guard matches.count == 1 else {
+                    throw PetManifestIssue.invalidComponentPolicy(reviewID)
+                }
+            }
+        } else if let scale = frame.bodyScale, !(0.5...3.0).contains(scale) {
             throw PetManifestIssue.invalidFrameGeometry(context)
         }
         if let offset = frame.renderOffset {
@@ -291,6 +454,128 @@ public struct PetManifestValidator: Sendable {
             collision.y + collision.height > frame.sourceSize.height) {
             throw PetManifestIssue.invalidFrameGeometry(context)
         }
+    }
+
+    private static func validate(_ policy: PetComponentPolicy) throws {
+        guard policy.default == "forbid",
+              (1...255).contains(policy.alphaThreshold),
+              policy.minimumArea > 0,
+              policy.connectivity == 8 else {
+            throw PetManifestIssue.invalidComponentPolicy("thresholds")
+        }
+        var reviewIDs = Set<String>()
+        for exception in policy.exceptions {
+            guard !exception.reviewId.isEmpty,
+                  reviewIDs.insert(exception.reviewId).inserted,
+                  exception.issue.wholeMatch(of: /^#[1-9][0-9]*$/) != nil,
+                  !exception.owner.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                  !exception.reviewedBy.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                  !exception.reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                  exception.animation.wholeMatch(of: /^[A-Za-z][A-Za-z0-9_-]{0,63}$/) != nil,
+                  !exception.frames.isEmpty,
+                  exception.frames.allSatisfy({ $0 >= 0 }),
+                  Set(exception.frames).count == exception.frames.count,
+                  exception.maximumSecondaryComponents > 0,
+                  exception.maximumSecondaryArea >= policy.minimumArea else {
+                throw PetManifestIssue.invalidComponentPolicy(exception.reviewId)
+            }
+        }
+    }
+
+    private static func validate(
+        _ rig: CanonicalIdentityRig,
+        canvas: AuthoredCanvas,
+        animations: [PetAnimation]
+    ) throws {
+        let requiredLandmarks: Set<String> = [
+            "leftEyeCenter", "rightEyeCenter", "leftEarRoot", "rightEarRoot",
+            "nose", "mouth", "shoulder", "hip", "leftForelimbJoint",
+            "rightForelimbJoint", "leftHindlimbJoint", "rightHindlimbJoint",
+            "tailRoot",
+        ]
+        let requiredContours: Set<String> = ["headOutline", "faceMaskOutline"]
+        guard !rig.views.isEmpty else { throw PetManifestIssue.invalidIdentityRig("views") }
+        let byID = Dictionary(uniqueKeysWithValues: animations.map { ($0.id, $0) })
+        var viewIDs = Set<String>()
+        for view in rig.views {
+            guard view.id.wholeMatch(of: /^[A-Za-z][A-Za-z0-9_-]{0,63}$/) != nil,
+                  viewIDs.insert(view.id).inserted,
+                  let reference = byID[view.referenceAnimation],
+                  reference.frames.indices.contains(view.referenceFrame),
+                  requiredLandmarks.isSubset(of: Set(view.landmarks.keys)),
+                  view.landmarks.values.allSatisfy({ Self.isValid($0, canvas: canvas) }),
+                  requiredContours.isSubset(of: Set(view.contours.keys)),
+                  view.contours.values.allSatisfy({
+                      $0.count >= 3 && $0.allSatisfy { Self.isValid($0, canvas: canvas) }
+                  }),
+                  !view.materialROIs.isEmpty,
+                  view.materialROIs.values.allSatisfy({
+                      $0.x >= 0 && $0.y >= 0 && $0.width > 0 && $0.height > 0 &&
+                          $0.x + $0.width <= canvas.width &&
+                          $0.y + $0.height <= canvas.height
+                  }) else {
+                throw PetManifestIssue.invalidIdentityRig(view.id)
+            }
+        }
+    }
+
+    private static func validateEndpointSignatures(_ animation: PetAnimation) throws {
+        guard let startPose = animation.startPose,
+              let endPose = animation.endPose,
+              let start = animation.startPoseSignature,
+              let end = animation.endPoseSignature,
+              start.pose == startPose,
+              end.pose == endPose,
+              start.frameIndex == 0,
+              end.frameIndex == animation.frames.count - 1,
+              Self.signature(start, matches: animation.frames[0]),
+              Self.signature(end, matches: animation.frames[animation.frames.count - 1]) else {
+            throw PetManifestIssue.invalidEndpointSignature(animation.id)
+        }
+    }
+
+    private static func signature(_ signature: PetPoseSignature, matches frame: PetFrame) -> Bool {
+        let contactIDs = (frame.supportAnchors ?? [])
+            .filter(\.contact)
+            .map(\.id)
+            .sorted()
+        return signature.pixelSHA256 == frame.atlasPixelSHA256 &&
+            signature.rootAnchor == frame.rootAnchor &&
+            signature.supportAnchorIDs == contactIDs &&
+            Set(signature.supportAnchorIDs).count == signature.supportAnchorIDs.count
+    }
+
+    private static func validateExceptionBindings(
+        _ policy: PetComponentPolicy,
+        animations: [PetAnimation],
+        lookDirections: [LookDirection]
+    ) throws {
+        let byID = Dictionary(uniqueKeysWithValues: animations.map { ($0.id, $0) })
+        for exception in policy.exceptions {
+            let frames: [PetFrame]?
+            if exception.animation == "lookDirections" {
+                frames = lookDirections.map(\.frame)
+            } else {
+                frames = byID[exception.animation]?.frames
+            }
+            guard let frames,
+                  exception.frames.allSatisfy({ frames.indices.contains($0) }),
+                  exception.frames.allSatisfy({
+                      frames[$0].componentExceptionReviewId == exception.reviewId
+                  }) else {
+                throw PetManifestIssue.invalidComponentPolicy(exception.reviewId)
+            }
+        }
+    }
+
+    private static func isValid(_ point: PixelPoint, canvas: AuthoredCanvas) -> Bool {
+        point.x.isFinite && point.y.isFinite &&
+            (0...Double(canvas.width)).contains(point.x) &&
+            (0...Double(canvas.height)).contains(point.y)
+    }
+
+    private static func isCanonicalDigest(_ value: String) -> Bool {
+        value.wholeMatch(of: /^sha256:[0-9a-f]{64}$/) != nil
     }
 
     public static func isSafeResourcePath(_ path: String) -> Bool {

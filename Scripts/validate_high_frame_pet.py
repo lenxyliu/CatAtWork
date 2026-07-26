@@ -12,6 +12,11 @@ from pathlib import Path
 
 from PIL import Image
 
+from canonical_asset_contract import (
+    CanonicalAssetContractError,
+    validate_canonical_package,
+)
+
 
 def frame_image(path: Path, frame: dict) -> Image.Image:
     image = Image.open(path).convert("RGBA")
@@ -148,6 +153,11 @@ def main() -> None:
     manifest = json.loads(args.manifest.read_text())
     root = args.manifest.parent
     errors: list[str] = []
+    if manifest.get("formatVersion") == 2:
+        try:
+            validate_canonical_package(args.manifest)
+        except CanonicalAssetContractError as error:
+            errors.append(f"canonical format-2 contract: {error}")
     animation_reports = []
     body_heights = []
     runtime_scales = set()

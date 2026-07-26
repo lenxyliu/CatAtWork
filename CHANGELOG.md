@@ -4,6 +4,11 @@ All user-visible changes are summarized here. Implementation and test evidence l
 
 ## Unreleased
 
+- Added canonical format-2 `.catpet` support with fixed world scale/canvas,
+  anatomical root and support anchors, identity/pose/color/component
+  metadata, and deterministic source-to-atlas validation. Existing format-1
+  packages remain readable and are never silently upgraded
+  ([CHG-20260726-005](docs/changes/CHG-20260726-005-canonical-pet-asset-contract.md)).
 - Package import, validation and texture decoding no longer run on the UI
   thread. Archive helper output, processing time and package expansion are
   bounded; repeated frames use a 128 MiB session cache, and stale imports or

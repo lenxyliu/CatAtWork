@@ -66,9 +66,37 @@ def main() -> None:
     parser.add_argument("--assets-root", type=Path, default=Path("Assets/CatAtWork"))
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--require-all", action="store_true")
+    parser.add_argument(
+        "--legacy-v1",
+        action="store_true",
+        help="explicitly reproduce the legacy format-1 resize/pivot pipeline",
+    )
     args = parser.parse_args()
 
     spec = json.loads((args.assets_root / "animation-spec.json").read_text())
+    if spec.get("contractVersion") == 2:
+        if args.legacy_v1:
+            raise SystemExit("--legacy-v1 cannot be used with contractVersion 2")
+        from canonical_asset_contract import (  # pylint: disable=import-outside-toplevel
+            CanonicalAssetContractError,
+            build_canonical_package,
+        )
+
+        try:
+            result = build_canonical_package(
+                args.assets_root,
+                args.output,
+                require_all=args.require_all,
+            )
+        except CanonicalAssetContractError as error:
+            raise SystemExit(str(error)) from error
+        print(json.dumps(result, ensure_ascii=False, sort_keys=True))
+        return
+    if not args.legacy_v1:
+        raise SystemExit(
+            "legacy authoring spec requires explicit --legacy-v1; "
+            "the builder will not silently upgrade or rewrite format 1"
+        )
     complete = []
     missing = []
     minimum_frames = int(spec.get("minimumFramesPerAnimation", 24))

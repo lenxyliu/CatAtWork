@@ -1,0 +1,322 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://catatwork.app/schemas/catpet-manifest-v2.json",
+  "title": "CatAtWork Canonical Pet Package",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "formatVersion",
+    "id",
+    "displayName",
+    "author",
+    "description",
+    "minimumAppVersion",
+    "pixelsPerBodyUnit",
+    "authoredCanvas",
+    "colorSpace",
+    "componentPolicy",
+    "identityRig",
+    "animations",
+    "lookDirections"
+  ],
+  "properties": {
+    "formatVersion": {"const": 2},
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]{1,63}$"},
+    "displayName": {"type": "string", "minLength": 1, "maxLength": 80},
+    "author": {"type": "string", "minLength": 1, "maxLength": 120},
+    "description": {"type": "string", "maxLength": 500},
+    "minimumAppVersion": {"type": "string", "pattern": "^[0-9]+(?:\\.[0-9]+){0,3}$"},
+    "assetVersion": {"type": ["string", "null"], "minLength": 1, "maxLength": 64},
+    "pixelsPerBodyUnit": {"const": 220},
+    "authoredCanvas": {"$ref": "#/$defs/authoredCanvas"},
+    "colorSpace": {"$ref": "#/$defs/colorSpace"},
+    "componentPolicy": {"$ref": "#/$defs/componentPolicy"},
+    "identityRig": {"$ref": "#/$defs/identityRig"},
+    "animations": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 128,
+      "items": {"$ref": "#/$defs/animation"}
+    },
+    "lookDirections": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 16,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["degrees", "frame"],
+        "properties": {
+          "degrees": {"type": "number", "minimum": 0, "maximum": 337.5, "multipleOf": 22.5},
+          "frame": {"$ref": "#/$defs/frame"}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "authoredCanvas": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["width", "height", "safeMargin"],
+      "properties": {
+        "width": {"type": "integer", "minimum": 1, "maximum": 8192},
+        "height": {"type": "integer", "minimum": 1, "maximum": 8192},
+        "safeMargin": {"type": "integer", "minimum": 1}
+      }
+    },
+    "colorSpace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "pixelFormat", "alphaMode", "conversion"],
+      "properties": {
+        "name": {"const": "sRGB"},
+        "pixelFormat": {"const": "RGBA8"},
+        "alphaMode": {"const": "straight"},
+        "conversion": {"const": "identity"}
+      }
+    },
+    "size": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["width", "height"],
+      "properties": {
+        "width": {"type": "integer", "minimum": 1, "maximum": 8192},
+        "height": {"type": "integer", "minimum": 1, "maximum": 8192}
+      }
+    },
+    "rect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y", "width", "height"],
+      "properties": {
+        "x": {"type": "integer", "minimum": 0},
+        "y": {"type": "integer", "minimum": 0},
+        "width": {"type": "integer", "minimum": 1},
+        "height": {"type": "integer", "minimum": 1}
+      }
+    },
+    "normalizedPoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y"],
+      "properties": {
+        "x": {"type": "number", "minimum": 0, "maximum": 1},
+        "y": {"type": "number", "minimum": 0, "maximum": 1}
+      }
+    },
+    "pixelPoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y"],
+      "properties": {
+        "x": {"type": "number"},
+        "y": {"type": "number"}
+      }
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "supportAnchor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "point", "contact"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$"},
+        "point": {"$ref": "#/$defs/pixelPoint"},
+        "contact": {"type": "boolean"}
+      }
+    },
+    "componentException": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reviewId",
+        "issue",
+        "owner",
+        "reviewedBy",
+        "reason",
+        "animation",
+        "frames",
+        "maximumSecondaryComponents",
+        "maximumSecondaryArea"
+      ],
+      "properties": {
+        "reviewId": {"type": "string", "minLength": 1},
+        "issue": {"type": "string", "pattern": "^#[1-9][0-9]*$"},
+        "owner": {"type": "string", "minLength": 1},
+        "reviewedBy": {"type": "string", "minLength": 1},
+        "reason": {"type": "string", "minLength": 1},
+        "animation": {"type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$"},
+        "frames": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "integer", "minimum": 0}
+        },
+        "maximumSecondaryComponents": {"type": "integer", "minimum": 1},
+        "maximumSecondaryArea": {"type": "integer", "minimum": 1}
+      }
+    },
+    "componentPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["default", "alphaThreshold", "minimumArea", "connectivity", "exceptions"],
+      "properties": {
+        "default": {"const": "forbid"},
+        "alphaThreshold": {"type": "integer", "minimum": 1, "maximum": 255},
+        "minimumArea": {"type": "integer", "minimum": 1},
+        "connectivity": {"const": 8},
+        "exceptions": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/componentException"}
+        }
+      }
+    },
+    "identityView": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "referenceAnimation",
+        "referenceFrame",
+        "landmarks",
+        "contours",
+        "materialROIs"
+      ],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$"},
+        "referenceAnimation": {"type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$"},
+        "referenceFrame": {"type": "integer", "minimum": 0},
+        "landmarks": {
+          "type": "object",
+          "minProperties": 13,
+          "required": [
+            "leftEyeCenter",
+            "rightEyeCenter",
+            "leftEarRoot",
+            "rightEarRoot",
+            "nose",
+            "mouth",
+            "shoulder",
+            "hip",
+            "leftForelimbJoint",
+            "rightForelimbJoint",
+            "leftHindlimbJoint",
+            "rightHindlimbJoint",
+            "tailRoot"
+          ],
+          "additionalProperties": {"$ref": "#/$defs/pixelPoint"}
+        },
+        "contours": {
+          "type": "object",
+          "required": ["headOutline", "faceMaskOutline"],
+          "additionalProperties": {
+            "type": "array",
+            "minItems": 3,
+            "items": {"$ref": "#/$defs/pixelPoint"}
+          }
+        },
+        "materialROIs": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {"$ref": "#/$defs/rect"}
+        }
+      }
+    },
+    "identityRig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["views"],
+      "properties": {
+        "views": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/identityView"}
+        }
+      }
+    },
+    "poseSignature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pose", "frameIndex", "pixelSHA256", "rootAnchor", "supportAnchorIDs"],
+      "properties": {
+        "pose": {"enum": ["seated", "standing", "lying", "hanging", "airborne"]},
+        "frameIndex": {"type": "integer", "minimum": 0},
+        "pixelSHA256": {"$ref": "#/$defs/digest"},
+        "rootAnchor": {"$ref": "#/$defs/pixelPoint"},
+        "supportAnchorIDs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$"}
+        }
+      }
+    },
+    "frame": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "image",
+        "sourceSize",
+        "trimRect",
+        "textureRect",
+        "collisionRect",
+        "pivot",
+        "rootAnchor",
+        "supportAnchors",
+        "duration",
+        "sourcePixelSHA256",
+        "atlasPixelSHA256"
+      ],
+      "properties": {
+        "image": {"type": "string", "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[^\\\\]+$"},
+        "sourceSize": {"$ref": "#/$defs/size"},
+        "trimRect": {"$ref": "#/$defs/rect"},
+        "textureRect": {"$ref": "#/$defs/rect"},
+        "collisionRect": {"$ref": "#/$defs/rect"},
+        "pivot": {"$ref": "#/$defs/normalizedPoint"},
+        "rootAnchor": {"$ref": "#/$defs/pixelPoint"},
+        "supportAnchors": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/supportAnchor"}
+        },
+        "renderOffset": {"anyOf": [{"$ref": "#/$defs/pixelPoint"}, {"type": "null"}]},
+        "duration": {"type": "number", "minimum": 0.0083333333, "maximum": 1},
+        "bodyScale": {"type": ["number", "null"], "enum": [1, null]},
+        "sourcePixelSHA256": {"$ref": "#/$defs/digest"},
+        "atlasPixelSHA256": {"$ref": "#/$defs/digest"},
+        "componentExceptionReviewId": {"type": "string", "minLength": 1}
+      }
+    },
+    "animation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "loopMode",
+        "startPose",
+        "endPose",
+        "startPoseSignature",
+        "endPoseSignature",
+        "frames"
+      ],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$"},
+        "loopMode": {"enum": ["loop", "once", "pingPong"]},
+        "nextAnimation": {"type": ["string", "null"]},
+        "startPose": {"enum": ["seated", "standing", "lying", "hanging", "airborne"]},
+        "endPose": {"enum": ["seated", "standing", "lying", "hanging", "airborne"]},
+        "startPoseSignature": {"$ref": "#/$defs/poseSignature"},
+        "endPoseSignature": {"$ref": "#/$defs/poseSignature"},
+        "loopStartFrame": {"type": ["integer", "null"], "minimum": 0},
+        "frames": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1000,
+          "items": {"$ref": "#/$defs/frame"}
+        }
+      }
+    }
+  }
+}

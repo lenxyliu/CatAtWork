@@ -8,11 +8,15 @@
 - Master-Register: https://github.com/lenxyliu/CatAtWork/issues/15
 - Child-Issues: #9–#14 and #16–#21
 - Current-Production-Evidence: `assetVersion 2026.07.23.6`
-- Current-Checkpoint: B2 was accepted by
-  [PR #26](https://github.com/lenxyliu/CatAtWork/pull/26) as
-  `main@72d2154afbe590654ce5c21be7363d9c67ac267f` after exact 42-path scope
-  equality, final-head hosted governance/Swift and procedural review. B3 and
-  every other later batch remain not started
+- Current-Checkpoint: B3 canonical format-2 contract implementation is
+  publication-ready on `codex/canonical-pet-asset-contract` from exact clean
+  base `main@b0efc0e91f9ac7142c4517b4ee295215294f7907`. Final local governed
+  digest
+  `0ba6eb93d724560e3499a0b2805084061a14c5022484f5982e8dff3976e069b8`
+  passed 37 Python and 64 fresh-path Swift tests plus the byte-identical B2
+  baseline/release oracle. B3 is not accepted until its exact PR head passes
+  hosted governance/Swift and squash-merges; B4 and all later batches remain
+  not started
 
 ## 1. Objective
 
@@ -558,8 +562,8 @@ Update rows and append dated events; do not erase a failed or superseded event.
 | B0 | complete | `main@0ca2b518d5a079ace1ef1e6d9a6892a5259b080e` | CHG-20260724-001/002; TR-GOVERNANCE-20260724-001..004 | Preserve the accepted checkpoint |
 | B1 | complete | evidence [PR #23](https://github.com/lenxyliu/CatAtWork/pull/23) accepted as `054c05f4450a162b981d980456abdc443521a530`; closure [PR #24](https://github.com/lenxyliu/CatAtWork/pull/24) accepted as `eb988253689d4ea31c462f4ef6b76015a61a4630` | ISSUE-015..026; BC-018..029; CHG-20260724-003; CHG-20260726-001/002; TR-VISUAL-20260724-001..011; TR-GITHUB-20260724-003; TR-GITHUB-20260726-001..005; TR-GOVERNANCE-20260724-005; TR-GOVERNANCE-20260726-001..003; evidence manifest `1c037439b73fa07fa188b20efd8f08f5fcc24b547ba9d2a1e6124fd645bee0d6`; final B1 head `273057ad7663a1c7df775821cc1a7c929e7a0324` passed hosted `governance`/`swift` | Preserve the accepted checkpoint |
 | B2 | complete | [PR #26](https://github.com/lenxyliu/CatAtWork/pull/26) final head `443023ec738c4b449416dcb01e38355a789b9b2e` accepted as `72d2154afbe590654ce5c21be7363d9c67ac267f` | ISSUE-027; BC-030; ADR-0015; CHG-20260726-003/004; TR-VISUAL-20260726-001..007; TR-GOVERNANCE-20260726-004..012; TR-GITHUB-20260726-006..009; GitHub #14 [pre-merge](https://github.com/lenxyliu/CatAtWork/issues/14#issuecomment-5084075110) / [accepted](https://github.com/lenxyliu/CatAtWork/issues/14#issuecomment-5084083228); #15 [pre-merge](https://github.com/lenxyliu/CatAtWork/issues/15#issuecomment-5084075222) / [accepted](https://github.com/lenxyliu/CatAtWork/issues/15#issuecomment-5084083337) | Preserve the accepted checkpoint; do not begin B3 in the B2 task |
-| B3 | ready-not-started | not started; base `main@72d2154afbe590654ce5c21be7363d9c67ac267f` after closure acceptance | GitHub #9/#11/#12/#16/#17/#21 | Decide canonical scale/root/pose compatibility contract in a new Local task |
-| B4 | blocked-by-B3 | not started | GitHub #9/#10/#11/#12/#16/#17/#21 | Freeze identity references before changing production frames |
+| B3 | publication-ready | `codex/canonical-pet-asset-contract` from `main@b0efc0e91f9ac7142c4517b4ee295215294f7907`; final local governed digest `0ba6eb93d724560e3499a0b2805084061a14c5022484f5982e8dff3976e069b8` | ISSUE-015/017/018/021/022/026; BC-018/020/021/024/025/029/030; ADR-0016; CHG-20260726-005; TR-ASSET-20260726-001..019; TR-GOVERNANCE-20260726-013/014; GitHub #9/#11/#12/#16/#17/#21/#15 publication comments pending | Publish only through a reviewed exact-head PR with hosted governance/Swift |
+| B4 | blocked-by-B3 | not started; do not create a B4 branch until B3 is accepted on `main` | GitHub #9/#10/#11/#12/#16/#17/#21 | Freeze identity references only after B3 acceptance |
 | B5 | ready-not-started | not started | GitHub #13/#18 | Reproduce all locomotion entry paths with synchronized logs after the sequential B3/B4 decision |
 | B6 | ready-not-started | not started | GitHub #19 | Run delay-injection red test before deciding on a fix |
 | B7 | ready-not-started | not started | GitHub #20 | Add current-build gaze/body orthogonality oracle |
@@ -654,6 +658,30 @@ Update rows and append dated events; do not erase a failed or superseded event.
   [#15 accepted](https://github.com/lenxyliu/CatAtWork/issues/15#issuecomment-5084083337)
   evidence. Local main aligned cleanly before the closure branch; no GitHub
   child Issue was closed or marked fixed, and B3 did not start.
+- 2026-07-26: B3 started from exact clean
+  `main@b0efc0e91f9ac7142c4517b4ee295215294f7907` on
+  `codex/canonical-pet-asset-contract` after reading every scoped Issue/comment
+  and linked governance/design record. ADR-0016 and CHG-20260726-005 govern
+  canonical format 2: fixed 220 px/body-unit scale/canvas, explicit
+  root/support and identity rig, endpoint signatures, sRGB straight-RGBA
+  identity conversion, reviewed disconnected-component exceptions, exact
+  source/atlas digest equality and explicit format-1 compatibility.
+  TR-ASSET-20260726-009 preserves a staging-fixture failure and
+  TR-ASSET-20260726-014 preserves a source-root digest drift; their corrected
+  reruns are 010 and 015. Final digest
+  `0ba6eb93d724560e3499a0b2805084061a14c5022484f5982e8dff3976e069b8`
+  passed 37/37 Python, 64/64 fresh-path Swift, Core smoke/current-package
+  validation and a byte-identical B2 baseline/release oracle in TR-ASSET
+  016..019. Production rasters, atlases, format-1 manifest and frozen B1
+  evidence have no diff; all 11 known production findings remain deliberately
+  open for B4. B3 awaits reviewed PR publication; B4 and later batches have
+  not started.
+- 2026-07-26: the initial 39-path staged governance run rejected backtick-
+  wrapped digest metadata and missing toolchain fields; failure
+  TR-GOVERNANCE-20260726-013 preserves the diagnostics. After normalizing the
+  TR metadata, the corrected staged run passed all 39 paths with unchanged
+  governed digest in TR-GOVERNANCE-20260726-014. No production content,
+  behavior, B4 scope or Issue lifecycle changed.
 
 ## 10. Plan revision rules
 
@@ -677,3 +705,4 @@ Update rows and append dated events; do not erase a failed or superseded event.
 | 2026-07-26 | CHG-20260726-002 | Preserved the failed and recovered final #15 publication attempts and the accepted closure-PR evidence. |
 | 2026-07-26 | CHG-20260726-003 | Completed the local B2 deterministic visual-QA gates, exact baseline/release evidence and publication-ready checkpoint without starting B3. |
 | 2026-07-26 | CHG-20260726-004 | Recorded B2 PR #26 final-head checks, review, guarded squash merge, GitHub evidence, failed/recovered publication attempts and the B3 not-started boundary. |
+| 2026-07-26 | CHG-20260726-005 | Implemented and locally verified canonical format-2 asset/package semantics and explicit format-1 compatibility without modifying production content; B3 awaits reviewed PR acceptance. |

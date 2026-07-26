@@ -103,6 +103,28 @@ orthogonality. Negative fixtures and byte-determinism checks are mandatory.
 Generated reports and previews remain outside Git; reviewed contracts and
 synthetic test fixtures are governed source.
 
+## Canonical asset-contract gate
+
+Format-2 packaging and import additionally require governed synthetic
+fixtures that prove:
+
+- tail/fur or silhouette-bound changes do not move the authored root, pivot
+  or package world scale;
+- all source RGBA/alpha bytes survive atlas packing without resize,
+  resampling or color conversion;
+- repeated equal inputs produce byte-identical manifest and atlas trees;
+- invalid canvas/safe margin, root/support anchor, pose/signature, color,
+  identity rig, digest or component metadata fails closed;
+- a secondary component is rejected unless one complete reviewed exception
+  matches its exact content scope;
+- format 1 remains readable, legacy authoring requires explicit
+  `--legacy-v1`, and the governed production package is unchanged.
+
+The full Python suite, fresh-path Swift suite and hosted Swift job run these
+fixtures. Until B4 creates a reviewed format-2 production package, CI also
+runs the unchanged B2 baseline/release oracle against asset `2026.07.23.6`;
+baseline must match exactly and release must continue to reject it.
+
 ## Revision log
 
 | Date | CHG | Revision |
@@ -116,3 +138,4 @@ synthetic test fixtures are governed source.
 | 2026-07-23 | CHG-20260723-007 | Recorded the owner's permanent no-paid-plan decision and procedural unprotected-main policy. |
 | 2026-07-23 | CHG-20260723-008 | Changed push-to-main governance from full-baseline validation to the exact pushed diff. |
 | 2026-07-26 | CHG-20260726-003 | Added deterministic visual-QA report, baseline/release decision and waiver policy. |
+| 2026-07-26 | CHG-20260726-005 | Added canonical format-2 source/package, fail-closed negative, deterministic round-trip and legacy non-rewrite gates. |
