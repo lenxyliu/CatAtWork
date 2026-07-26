@@ -8,11 +8,11 @@
 - Master-Register: https://github.com/lenxyliu/CatAtWork/issues/15
 - Child-Issues: #9–#14 and #16–#21
 - Current-Production-Evidence: `assetVersion 2026.07.23.6`
-- Current-Checkpoint: B1 accepted by squash-merging
-  [PR #23](https://github.com/lenxyliu/CatAtWork/pull/23) to
-  `main@054c05f4450a162b981d980456abdc443521a530`; final reviewed head
-  `273057ad7663a1c7df775821cc1a7c929e7a0324` passed hosted `governance` and
-  `swift`; publication closure is CHG-20260726-001 and B2 has not started
+- Current-Checkpoint: B1 evidence accepted by
+  [PR #23](https://github.com/lenxyliu/CatAtWork/pull/23) as
+  `054c05f4450a162b981d980456abdc443521a530`; its plan-ledger closure was
+  accepted by [PR #24](https://github.com/lenxyliu/CatAtWork/pull/24) as
+  `eb988253689d4ea31c462f4ef6b76015a61a4630`; B2 has not started
 
 ## 1. Objective
 
@@ -556,7 +556,7 @@ Update rows and append dated events; do not erase a failed or superseded event.
 | Batch | Status | Branch/checkpoint | Evidence/records | Single next action |
 | --- | --- | --- | --- | --- |
 | B0 | complete | `main@0ca2b518d5a079ace1ef1e6d9a6892a5259b080e` | CHG-20260724-001/002; TR-GOVERNANCE-20260724-001..004 | Preserve the accepted checkpoint |
-| B1 | complete | [PR #23](https://github.com/lenxyliu/CatAtWork/pull/23); accepted `main@054c05f4450a162b981d980456abdc443521a530` | ISSUE-015..026; BC-018..029; CHG-20260724-003; CHG-20260726-001; TR-VISUAL-20260724-001..011; TR-GITHUB-20260724-003; TR-GITHUB-20260726-001..003; TR-GOVERNANCE-20260724-005; TR-GOVERNANCE-20260726-001..002; evidence manifest `1c037439b73fa07fa188b20efd8f08f5fcc24b547ba9d2a1e6124fd645bee0d6`; final head `273057ad7663a1c7df775821cc1a7c929e7a0324` passed hosted `governance`/`swift` | Preserve the accepted checkpoint |
+| B1 | complete | evidence [PR #23](https://github.com/lenxyliu/CatAtWork/pull/23) accepted as `054c05f4450a162b981d980456abdc443521a530`; closure [PR #24](https://github.com/lenxyliu/CatAtWork/pull/24) accepted as `eb988253689d4ea31c462f4ef6b76015a61a4630` | ISSUE-015..026; BC-018..029; CHG-20260724-003; CHG-20260726-001/002; TR-VISUAL-20260724-001..011; TR-GITHUB-20260724-003; TR-GITHUB-20260726-001..005; TR-GOVERNANCE-20260724-005; TR-GOVERNANCE-20260726-001..003; evidence manifest `1c037439b73fa07fa188b20efd8f08f5fcc24b547ba9d2a1e6124fd645bee0d6`; final B1 head `273057ad7663a1c7df775821cc1a7c929e7a0324` passed hosted `governance`/`swift` | Preserve the accepted checkpoint |
 | B2 | ready-not-started | start only from accepted `main` after B1 publication closure | GitHub #14; B1 current-confirmed baseline | Open a fresh Local task and create `codex/visual-qa-gates` before edits |
 | B3 | blocked-by-B2 | not started | GitHub #9/#11/#12/#16/#17/#21 | Decide canonical scale/root/pose compatibility contract |
 | B4 | blocked-by-B3 | not started | GitHub #9/#10/#11/#12/#16/#17/#21 | Freeze identity references before changing production frames |
@@ -611,6 +611,14 @@ Update rows and append dated events; do not erase a failed or superseded event.
   [accepted-merge evidence](https://github.com/lenxyliu/CatAtWork/issues/15#issuecomment-5083050161).
   Local `main` and `origin/main` matched the accepted merge with a clean
   worktree. No child Issue was closed or marked fixed, and B2 was not started.
+- 2026-07-26: B1 plan-ledger closure PR #24 retained seven Markdown paths,
+  passed hosted `governance` and `swift`, and squash-merged as
+  `eb988253689d4ea31c462f4ef6b76015a61a4630`. The first script that attempted
+  to append the final closure comment to #15 failed locally during JavaScript
+  parsing and is preserved as TR-GITHUB-20260726-004; the connector retry
+  passed as TR-GITHUB-20260726-005 and created
+  [comment 5083176789](https://github.com/lenxyliu/CatAtWork/issues/15#issuecomment-5083176789).
+  No child Issue status or B1 conclusion changed, and B2 remained not started.
 
 ## 10. Plan revision rules
 
@@ -631,3 +639,4 @@ Update rows and append dated events; do not erase a failed or superseded event.
 | 2026-07-24 | CHG-20260724-003 | Completed the content-matched B1 classification, evidence identities, issue updates and B2 merge dependency. |
 | 2026-07-24 | CHG-20260724-003 | Recorded B1 PR #23 and initial hosted check verification while keeping B2 blocked pending merge. |
 | 2026-07-26 | CHG-20260726-001 | Recorded the reviewed B1 squash merge, final hosted checks, #15 publication evidence and B2 not-started boundary. |
+| 2026-07-26 | CHG-20260726-002 | Preserved the failed and recovered final #15 publication attempts and the accepted closure-PR evidence. |
