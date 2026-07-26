@@ -1,0 +1,19 @@
+{
+  "name": "endpoint-pose",
+  "expectedFindingId": "fixture/endpoint-pose",
+  "observation": {
+    "observationId": "fixture/endpoint-pose/mismatch",
+    "findingId": "fixture/endpoint-pose",
+    "family": "endpointPose",
+    "metric": "mismatchCount",
+    "value": 1,
+    "comparison": "zero",
+    "threshold": 0,
+    "thresholdSource": "fixture/endpoint-pose",
+    "severity": "error",
+    "action": "fixture",
+    "frames": [
+      1
+    ]
+  }
+}

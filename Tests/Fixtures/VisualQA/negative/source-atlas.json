@@ -1,0 +1,19 @@
+{
+  "name": "source-atlas-round-trip",
+  "expectedFindingId": "fixture/source-atlas",
+  "observation": {
+    "observationId": "fixture/source-atlas/rgba-digest",
+    "findingId": "fixture/source-atlas",
+    "family": "sourceAtlasRoundTrip",
+    "metric": "rgbaDigestMatch",
+    "value": false,
+    "comparison": "true",
+    "threshold": true,
+    "thresholdSource": "fixture/source-atlas",
+    "severity": "error",
+    "action": "fixture",
+    "frames": [
+      1
+    ]
+  }
+}

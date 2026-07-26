@@ -1,0 +1,20 @@
+{
+  "name": "root-support",
+  "expectedFindingId": "fixture/root-support",
+  "observation": {
+    "observationId": "fixture/root-support/slip",
+    "findingId": "fixture/root-support",
+    "family": "rootSupport",
+    "metric": "supportDeltaPixels",
+    "value": 4,
+    "comparison": "lte",
+    "threshold": 1,
+    "thresholdSource": "fixture/root-support",
+    "severity": "error",
+    "action": "fixture",
+    "frames": [
+      1,
+      2
+    ]
+  }
+}

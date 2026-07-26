@@ -77,6 +77,32 @@ The `--all` mode is reserved for establishing a new repository baseline.
 
 No version tag or Release is created until required automatic and device cases pass, all release artifacts have verified checksums, signing/DMG validation succeeds, and every release-blocking high-priority ISSUE is closed.
 
+## Deterministic visual-QA gate
+
+Visual acceptance uses the versioned report and mode policy established by
+ADR-0015:
+
+- normalized report bytes depend only on input content, reviewed contracts
+  and declared tool versions; paths, timestamps and host-specific ordering are
+  excluded;
+- every finding carries stable package/action/frame identity, metric and
+  observed values, threshold value/source and optional validated waiver ID;
+- baseline mode requires exact equality with the reviewed known-failure set
+  for the same package and supplemental-evidence content;
+- release mode permits zero errors and zero unwaived warnings; an error cannot
+  be waived and missing required evidence is an error;
+- waivers name an Issue, rationale, owner, affected actions/frames and expiry
+  date, and never silently broaden their scope;
+- action contracts explicitly describe squash/stretch budgets, airborne
+  movement, support phases and allowed disconnected components.
+
+The gate covers source/atlas round-trip, identity proxies, root/support,
+material color, connected components, edge clearance, adjacent/batch/loop
+seams, endpoint poses, locomotion/cadence/snapshot evidence and gaze/body
+orthogonality. Negative fixtures and byte-determinism checks are mandatory.
+Generated reports and previews remain outside Git; reviewed contracts and
+synthetic test fixtures are governed source.
+
 ## Revision log
 
 | Date | CHG | Revision |
@@ -89,3 +115,4 @@ No version tag or Release is created until required automatic and device cases p
 | 2026-07-23 | CHG-20260723-006 | Applied available squash-only merge settings and made private-repository protection availability an explicit blocking gate. |
 | 2026-07-23 | CHG-20260723-007 | Recorded the owner's permanent no-paid-plan decision and procedural unprotected-main policy. |
 | 2026-07-23 | CHG-20260723-008 | Changed push-to-main governance from full-baseline validation to the exact pushed diff. |
+| 2026-07-26 | CHG-20260726-003 | Added deterministic visual-QA report, baseline/release decision and waiver policy. |

@@ -1,0 +1,16 @@
+{
+  "name": "cadence",
+  "expectedFindingId": "fixture/cadence",
+  "observation": {
+    "observationId": "fixture/cadence/error",
+    "findingId": "fixture/cadence",
+    "family": "cadence",
+    "metric": "maximumFrameDurationErrorMilliseconds",
+    "value": 28.571,
+    "comparison": "lte",
+    "threshold": 8.333,
+    "thresholdSource": "fixture/cadence",
+    "severity": "error",
+    "action": "walkRight"
+  }
+}

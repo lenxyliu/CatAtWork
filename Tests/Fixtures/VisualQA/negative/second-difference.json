@@ -1,0 +1,21 @@
+{
+  "name": "second-difference",
+  "expectedFindingId": "fixture/second-difference",
+  "observation": {
+    "observationId": "fixture/second-difference/width",
+    "findingId": "fixture/second-difference",
+    "family": "secondDifference",
+    "metric": "width",
+    "value": 0.7,
+    "comparison": "lte",
+    "threshold": 0.2,
+    "thresholdSource": "fixture/second-difference",
+    "severity": "error",
+    "action": "fixture",
+    "frames": [
+      1,
+      2,
+      3
+    ]
+  }
+}

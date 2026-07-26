@@ -1,0 +1,19 @@
+{
+  "name": "edge-clearance",
+  "expectedFindingId": "fixture/edge-clearance",
+  "observation": {
+    "observationId": "fixture/edge-clearance/margin",
+    "findingId": "fixture/edge-clearance",
+    "family": "edgeClearance",
+    "metric": "minimumTransparentMarginPixels",
+    "value": 0,
+    "comparison": "gte",
+    "threshold": 4,
+    "thresholdSource": "fixture/edge-clearance",
+    "severity": "error",
+    "action": "fixture",
+    "frames": [
+      1
+    ]
+  }
+}

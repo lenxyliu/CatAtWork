@@ -1,0 +1,20 @@
+{
+  "name": "batch-seam",
+  "expectedFindingId": "fixture/batch-seam",
+  "observation": {
+    "observationId": "fixture/batch-seam/area",
+    "findingId": "fixture/batch-seam",
+    "family": "batchSeamContinuity",
+    "metric": "areaRatio",
+    "value": 1.6,
+    "comparison": "lte",
+    "threshold": 1.2,
+    "thresholdSource": "fixture/batch-seam",
+    "severity": "error",
+    "action": "fixture",
+    "frames": [
+      8,
+      9
+    ]
+  }
+}

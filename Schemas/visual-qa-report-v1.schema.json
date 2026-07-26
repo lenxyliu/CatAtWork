@@ -1,0 +1,325 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://catatwork.app/schemas/visual-qa-report-v1.schema.json",
+  "title": "CatAtWork deterministic visual-QA report v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "mode",
+    "decision",
+    "contentDigest",
+    "toolVersions",
+    "package",
+    "inputDigests",
+    "summary",
+    "baselineComparison",
+    "waivers",
+    "findings",
+    "observations"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "catatwork.visual-qa-report/v1"
+    },
+    "mode": {
+      "enum": [
+        "baseline",
+        "release"
+      ]
+    },
+    "decision": {
+      "enum": [
+        "pass",
+        "fail"
+      ]
+    },
+    "contentDigest": {
+      "$ref": "#/$defs/sha256"
+    },
+    "toolVersions": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "package": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "assetVersion",
+        "packageDigest",
+        "actionCount",
+        "frameCount"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "assetVersion": {
+          "type": "string"
+        },
+        "packageDigest": {
+          "$ref": "#/$defs/sha256"
+        },
+        "actionCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "frameCount": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "inputDigests": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/sha256"
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "observationCount",
+        "findingCount",
+        "errorCount",
+        "unwaivedWarningCount",
+        "waivedFindingCount"
+      ],
+      "properties": {
+        "observationCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "findingCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "errorCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unwaivedWarningCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "waivedFindingCount": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "baselineComparison": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "expectedFindingIds",
+        "actualFindingIds",
+        "newFindingIds",
+        "missingFindingIds"
+      ],
+      "properties": {
+        "expectedFindingIds": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "actualFindingIds": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "newFindingIds": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "missingFindingIds": {
+          "$ref": "#/$defs/stringArray"
+        }
+      }
+    },
+    "waivers": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/waiver"
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/finding"
+      }
+    },
+    "observations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/observation"
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "stringArray": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "waiver": {
+      "type": "object",
+      "required": [
+        "id",
+        "issue",
+        "rationale",
+        "owner",
+        "affectedActions",
+        "affectedFrames",
+        "expiryDate"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "issue": {
+          "type": "string"
+        },
+        "rationale": {
+          "type": "string"
+        },
+        "owner": {
+          "type": "string"
+        },
+        "affectedActions": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "affectedFrames": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "expiryDate": {
+          "type": "string",
+          "format": "date"
+        }
+      }
+    },
+    "finding": {
+      "type": "object",
+      "required": [
+        "findingId",
+        "severity",
+        "waived",
+        "violations"
+      ],
+      "properties": {
+        "findingId": {
+          "type": "string"
+        },
+        "severity": {
+          "enum": [
+            "error",
+            "warning"
+          ]
+        },
+        "waived": {
+          "type": "boolean"
+        },
+        "violations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "observationId",
+              "severity",
+              "waived"
+            ],
+            "properties": {
+              "observationId": {
+                "type": "string"
+              },
+              "severity": {
+                "enum": [
+                  "error",
+                  "warning"
+                ]
+              },
+              "waived": {
+                "type": "boolean"
+              },
+              "waiverId": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "observation": {
+      "type": "object",
+      "required": [
+        "observationId",
+        "findingId",
+        "family",
+        "metric",
+        "value",
+        "comparison",
+        "threshold",
+        "thresholdSource",
+        "severity",
+        "passed"
+      ],
+      "properties": {
+        "observationId": {
+          "type": "string"
+        },
+        "findingId": {
+          "type": "string"
+        },
+        "family": {
+          "type": "string"
+        },
+        "metric": {
+          "type": "string"
+        },
+        "value": {},
+        "comparison": {
+          "enum": [
+            "lte",
+            "gte",
+            "eq",
+            "between",
+            "zero",
+            "true",
+            "false"
+          ]
+        },
+        "threshold": {},
+        "thresholdSource": {
+          "type": "string"
+        },
+        "severity": {
+          "enum": [
+            "error",
+            "warning"
+          ]
+        },
+        "action": {
+          "type": "string"
+        },
+        "frames": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "waiverId": {
+          "type": "string"
+        },
+        "passed": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

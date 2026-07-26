@@ -1,0 +1,16 @@
+{
+  "name": "locomotion",
+  "expectedFindingId": "fixture/locomotion",
+  "observation": {
+    "observationId": "fixture/locomotion/near-zero",
+    "findingId": "fixture/locomotion",
+    "family": "locomotion",
+    "metric": "nearZeroDurationMilliseconds",
+    "value": 500,
+    "comparison": "lte",
+    "threshold": 100,
+    "thresholdSource": "fixture/locomotion",
+    "severity": "error",
+    "action": "walkRight"
+  }
+}

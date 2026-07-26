@@ -1,0 +1,15 @@
+{
+  "name": "render-snapshot",
+  "expectedFindingId": "fixture/render-snapshot",
+  "observation": {
+    "observationId": "fixture/render-snapshot/transparent",
+    "findingId": "fixture/render-snapshot",
+    "family": "renderSnapshot",
+    "metric": "transparentFrameCount",
+    "value": 1,
+    "comparison": "zero",
+    "threshold": 0,
+    "thresholdSource": "fixture/render-snapshot",
+    "severity": "error"
+  }
+}
