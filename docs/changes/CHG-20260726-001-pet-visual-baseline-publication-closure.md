@@ -9,7 +9,8 @@
 - BC: BC-018 through BC-029
 - ADR: none
 - Design: docs/plans/PLAN-20260724-PET-VISUAL-REMEDIATION.md
-- TR: TR-GITHUB-20260726-001; TR-GOVERNANCE-20260726-001
+- TR: TR-GITHUB-20260726-001 through TR-GITHUB-20260726-003;
+  TR-GOVERNANCE-20260726-001 through TR-GOVERNANCE-20260726-002
 
 ## Purpose
 
@@ -49,6 +50,12 @@ contains no generated QA output or binary artifact.
 - TR-GOVERNANCE-20260726-001: the four-path Markdown-only closure diff passed
   whitespace and governance checks without changing the governed-content
   digest.
+- TR-GITHUB-20260726-002: failed because the resumed shell lacked `gh`;
+  remote inspection did not execute and no state changed.
+- TR-GITHUB-20260726-003: the connector rerun matched PR #24 metadata and all
+  four then-current Markdown paths and found the required workflow run.
+- TR-GOVERNANCE-20260726-002: the final seven-path closure diff passed local
+  whitespace and governance checks.
 
 ## Rollback
 
@@ -61,3 +68,5 @@ rewrite the accepted B1 evidence to roll back this ledger change.
 - 2026-07-26: created before the post-merge plan-ledger update.
 - 2026-07-26: finalized with the accepted PR #23 merge and closure-governance
   evidence; B2 remained not started.
+- 2026-07-26: preserved the failed closure-PR CLI inspection and connector
+  recovery in separate TRs, then revalidated the final closure scope.
