@@ -1,0 +1,170 @@
+{
+  "schemaVersion": "catatwork.visual-qa-observation-fixture/v1",
+  "observations": [
+    {
+      "observationId": "clean/source-atlas",
+      "findingId": "clean/source-atlas",
+      "family": "sourceAtlasRoundTrip",
+      "metric": "rgbaDigestMatch",
+      "value": true,
+      "comparison": "true",
+      "threshold": true,
+      "thresholdSource": "fixture/clean",
+      "severity": "error"
+    },
+    {
+      "observationId": "clean/identity",
+      "findingId": "clean/identity",
+      "family": "canonicalIdentity",
+      "metric": "relativeDeviation",
+      "value": 0.01,
+      "comparison": "lte",
+      "threshold": 0.03,
+      "thresholdSource": "fixture/clean",
+      "severity": "error"
+    },
+    {
+      "observationId": "clean/root-support",
+      "findingId": "clean/root-support",
+      "family": "rootSupport",
+      "metric": "supportDeltaPixels",
+      "value": 1,
+      "comparison": "lte",
+      "threshold": 1,
+      "thresholdSource": "fixture/clean",
+      "severity": "error"
+    },
+    {
+      "observationId": "clean/color",
+      "findingId": "clean/color",
+      "family": "materialColor",
+      "metric": "lightDeltaE00",
+      "value": 2,
+      "comparison": "lte",
+      "threshold": 3,
+      "thresholdSource": "fixture/clean",
+      "severity": "error"
+    },
+    {
+      "observationId": "clean/components",
+      "findingId": "clean/components",
+      "family": "connectedComponents",
+      "metric": "unapprovedSignificantComponents",
+      "value": 0,
+      "comparison": "zero",
+      "threshold": 0,
+      "thresholdSource": "fixture/clean",
+      "severity": "error"
+    },
+    {
+      "observationId": "clean/edge-clearance",
+      "findingId": "clean/edge-clearance",
+      "family": "edgeClearance",
+      "metric": "minimumTransparentMarginPixels",
+      "value": 4,
+      "comparison": "gte",
+      "threshold": 4,
+      "thresholdSource": "fixture/clean",
+      "severity": "error"
+    },
+    {
+      "observationId": "clean/adjacent",
+      "findingId": "clean/adjacent",
+      "family": "adjacentContinuity",
+      "metric": "widthRatio",
+      "value": 1.05,
+      "comparison": "lte",
+      "threshold": 1.1,
+      "thresholdSource": "fixture/clean",
+      "severity": "error"
+    },
+    {
+      "observationId": "clean/batch-seam",
+      "findingId": "clean/batch-seam",
+      "family": "batchSeamContinuity",
+      "metric": "areaRatio",
+      "value": 1.05,
+      "comparison": "lte",
+      "threshold": 1.1,
+      "thresholdSource": "fixture/clean",
+      "severity": "error"
+    },
+    {
+      "observationId": "clean/loop-seam",
+      "findingId": "clean/loop-seam",
+      "family": "loopSeamContinuity",
+      "metric": "rootCentroidDeltaPixels",
+      "value": 1,
+      "comparison": "lte",
+      "threshold": 1,
+      "thresholdSource": "fixture/clean",
+      "severity": "error"
+    },
+    {
+      "observationId": "clean/second-difference",
+      "findingId": "clean/second-difference",
+      "family": "secondDifference",
+      "metric": "width",
+      "value": 0.1,
+      "comparison": "lte",
+      "threshold": 0.2,
+      "thresholdSource": "fixture/clean",
+      "severity": "error"
+    },
+    {
+      "observationId": "clean/endpoint-pose",
+      "findingId": "clean/endpoint-pose",
+      "family": "endpointPose",
+      "metric": "mismatchCount",
+      "value": 0,
+      "comparison": "zero",
+      "threshold": 0,
+      "thresholdSource": "fixture/clean",
+      "severity": "error"
+    },
+    {
+      "observationId": "clean/locomotion",
+      "findingId": "clean/locomotion",
+      "family": "locomotion",
+      "metric": "nearZeroDurationMilliseconds",
+      "value": 80,
+      "comparison": "lte",
+      "threshold": 100,
+      "thresholdSource": "fixture/clean",
+      "severity": "error"
+    },
+    {
+      "observationId": "clean/cadence",
+      "findingId": "clean/cadence",
+      "family": "cadence",
+      "metric": "maximumFrameDurationErrorMilliseconds",
+      "value": 8,
+      "comparison": "lte",
+      "threshold": 8.333,
+      "thresholdSource": "fixture/clean",
+      "severity": "error"
+    },
+    {
+      "observationId": "clean/render-snapshot",
+      "findingId": "clean/render-snapshot",
+      "family": "renderSnapshot",
+      "metric": "transparentFrameCount",
+      "value": 0,
+      "comparison": "zero",
+      "threshold": 0,
+      "thresholdSource": "fixture/clean",
+      "severity": "error"
+    },
+    {
+      "observationId": "clean/gaze-body",
+      "findingId": "clean/gaze-body",
+      "family": "gazeBodyOrthogonality",
+      "metric": "changedPixelsOutsideEyeROI",
+      "value": 0,
+      "comparison": "zero",
+      "threshold": 0,
+      "thresholdSource": "fixture/clean",
+      "severity": "error"
+    }
+  ]
+}

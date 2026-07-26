@@ -1,0 +1,15 @@
+{
+  "name": "gaze-body-orthogonality",
+  "expectedFindingId": "fixture/gaze-body",
+  "observation": {
+    "observationId": "fixture/gaze-body/outside-roi",
+    "findingId": "fixture/gaze-body",
+    "family": "gazeBodyOrthogonality",
+    "metric": "changedPixelsOutsideEyeROI",
+    "value": 3,
+    "comparison": "zero",
+    "threshold": 0,
+    "thresholdSource": "fixture/gaze-body",
+    "severity": "error"
+  }
+}

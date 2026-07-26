@@ -25,7 +25,7 @@ jobs:
         if: github.event_name == 'push'
         run: python3 Scripts/check_governance.py --base "${{ github.event.before }}"
       - name: Governance checker fixtures
-        run: python3 -B -m unittest discover -s Scripts/tests -p 'test_*.py'
+        run: python3 -B -m unittest discover -s Scripts/tests -p 'test_check_governance.py'
 
   swift:
     runs-on: macos-15
@@ -48,6 +48,8 @@ jobs:
           swift --version
           python3 --version
           python3 -c 'import PIL; print("Pillow", PIL.__version__)'
+      - name: Visual QA fixture gates
+        run: python3 -B -m unittest Scripts.tests.test_visual_qa
       - name: Swift build
         run: swift build
       - name: Swift unit tests
@@ -58,3 +60,20 @@ jobs:
           python3 Scripts/validate_high_frame_pet.py \
             --manifest Sources/CatAtWork/Resources/DefaultPet.catpet/manifest.json \
             --report /private/tmp/catatwork-high-frame-report.json
+          python3 Scripts/validate_visual_qa.py \
+            --manifest Sources/CatAtWork/Resources/DefaultPet.catpet/manifest.json \
+            --source-root Assets/CatAtWork \
+            --contract Tests/Fixtures/VisualQA/default-pet-b1-contract.json \
+            --supplemental Tests/Fixtures/VisualQA/default-pet-b1-supplemental.json \
+            --mode baseline \
+            --report /private/tmp/catatwork-visual-qa-baseline.json
+          if python3 Scripts/validate_visual_qa.py \
+            --manifest Sources/CatAtWork/Resources/DefaultPet.catpet/manifest.json \
+            --source-root Assets/CatAtWork \
+            --contract Tests/Fixtures/VisualQA/default-pet-b1-contract.json \
+            --supplemental Tests/Fixtures/VisualQA/default-pet-b1-supplemental.json \
+            --mode release \
+            --report /private/tmp/catatwork-visual-qa-release.json; then
+            echo "known-defective package unexpectedly passed release mode" >&2
+            exit 1
+          fi

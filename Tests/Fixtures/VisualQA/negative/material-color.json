@@ -1,0 +1,20 @@
+{
+  "name": "material-color",
+  "expectedFindingId": "fixture/material-color",
+  "observation": {
+    "observationId": "fixture/material-color/light",
+    "findingId": "fixture/material-color",
+    "family": "materialColor",
+    "metric": "lightDeltaE00",
+    "value": 5.1,
+    "comparison": "lte",
+    "threshold": 3,
+    "thresholdSource": "fixture/material-color",
+    "severity": "error",
+    "action": "fixture",
+    "frames": [
+      1,
+      2
+    ]
+  }
+}

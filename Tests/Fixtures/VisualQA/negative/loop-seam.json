@@ -1,0 +1,20 @@
+{
+  "name": "loop-seam",
+  "expectedFindingId": "fixture/loop-seam",
+  "observation": {
+    "observationId": "fixture/loop-seam/root",
+    "findingId": "fixture/loop-seam",
+    "family": "loopSeamContinuity",
+    "metric": "rootCentroidDeltaPixels",
+    "value": 8,
+    "comparison": "lte",
+    "threshold": 1,
+    "thresholdSource": "fixture/loop-seam",
+    "severity": "error",
+    "action": "fixture",
+    "frames": [
+      24,
+      1
+    ]
+  }
+}

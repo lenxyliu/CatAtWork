@@ -1,0 +1,20 @@
+{
+  "name": "adjacent-continuity",
+  "expectedFindingId": "fixture/adjacent-continuity",
+  "observation": {
+    "observationId": "fixture/adjacent/width",
+    "findingId": "fixture/adjacent-continuity",
+    "family": "adjacentContinuity",
+    "metric": "widthRatio",
+    "value": 1.5,
+    "comparison": "lte",
+    "threshold": 1.1,
+    "thresholdSource": "fixture/adjacent",
+    "severity": "error",
+    "action": "fixture",
+    "frames": [
+      1,
+      2
+    ]
+  }
+}

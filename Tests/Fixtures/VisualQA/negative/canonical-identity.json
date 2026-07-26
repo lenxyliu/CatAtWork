@@ -1,0 +1,19 @@
+{
+  "name": "canonical-identity",
+  "expectedFindingId": "fixture/canonical-identity",
+  "observation": {
+    "observationId": "fixture/canonical-identity/dark-support",
+    "findingId": "fixture/canonical-identity",
+    "family": "canonicalIdentity",
+    "metric": "upperDarkSupportRelativeDeviation",
+    "value": 0.2,
+    "comparison": "lte",
+    "threshold": 0.05,
+    "thresholdSource": "fixture/identity",
+    "severity": "error",
+    "action": "fixture",
+    "frames": [
+      1
+    ]
+  }
+}

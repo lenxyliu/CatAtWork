@@ -1,0 +1,201 @@
+{
+  "schemaVersion": "catatwork.visual-qa-contract/v1",
+  "baseline": {
+    "packageDigest": "fed6c517ce352b00cb97479a922d897c77417a6f4f5c1110c0e874463b2118b8",
+    "expectedFindingIds": [
+      "ISSUE-015/adjacent-continuity",
+      "ISSUE-016/material-color",
+      "ISSUE-017/cross-action-scale",
+      "ISSUE-017/source-atlas-round-trip",
+      "ISSUE-018/root-support",
+      "ISSUE-019/locomotion",
+      "ISSUE-021/connected-components",
+      "ISSUE-022/endpoint-pose",
+      "ISSUE-023/cadence",
+      "ISSUE-024/render-snapshot",
+      "ISSUE-026/identity-proxy"
+    ]
+  },
+  "componentPolicy": {
+    "minimumArea": 4,
+    "minimumPeakAlpha": 32,
+    "connectivity": 8
+  },
+  "identityPolicy": {
+    "headScaleDeviation": 0.03,
+    "darkSupportDeviation": 0.05
+  },
+  "thresholdProfiles": {
+    "micro": {
+      "adjacentWidthRatio": 1.08,
+      "adjacentHeightRatio": 1.08,
+      "adjacentAreaRatio": 1.08,
+      "rootCentroidDeltaPixels": 1,
+      "supportDeltaPixels": 1,
+      "secondDifferenceRatio": 0.12,
+      "materialDeltaE00": 3,
+      "edgeClearancePixels": 4
+    },
+    "general": {
+      "adjacentWidthRatio": 1.15,
+      "adjacentHeightRatio": 1.15,
+      "adjacentAreaRatio": 1.2,
+      "rootCentroidDeltaPixels": 8,
+      "supportDeltaPixels": 1,
+      "secondDifferenceRatio": 0.25,
+      "materialDeltaE00": 3,
+      "edgeClearancePixels": 4
+    },
+    "squash-stretch": {
+      "adjacentWidthRatio": 1.4,
+      "adjacentHeightRatio": 1.4,
+      "adjacentAreaRatio": 1.4,
+      "rootCentroidDeltaPixels": 12,
+      "supportDeltaPixels": 3,
+      "secondDifferenceRatio": 0.4,
+      "materialDeltaE00": 3,
+      "edgeClearancePixels": 4
+    },
+    "airborne": {
+      "adjacentWidthRatio": 1.5,
+      "adjacentHeightRatio": 1.5,
+      "adjacentAreaRatio": 1.6,
+      "rootCentroidDeltaPixels": 200,
+      "supportDeltaPixels": 200,
+      "secondDifferenceRatio": 0.8,
+      "materialDeltaE00": 3,
+      "edgeClearancePixels": 4
+    },
+    "locomotion": {
+      "adjacentWidthRatio": 1.2,
+      "adjacentHeightRatio": 1.2,
+      "adjacentAreaRatio": 1.25,
+      "rootCentroidDeltaPixels": 12,
+      "supportDeltaPixels": 2,
+      "secondDifferenceRatio": 0.35,
+      "materialDeltaE00": 3,
+      "edgeClearancePixels": 4
+    }
+  },
+  "actionContracts": [
+    {
+      "name": "micro-grounded",
+      "actions": [
+        "idle",
+        "idleEar",
+        "idleTail",
+        "sleep",
+        "curious",
+        "working",
+        "waiting"
+      ],
+      "thresholdProfile": "micro",
+      "squashStretch": {
+        "allowed": false
+      },
+      "airborneMovement": {
+        "allowed": false
+      },
+      "supportPhases": {
+        "mode": "all-frames"
+      },
+      "allowedDisconnectedComponents": []
+    },
+    {
+      "name": "general-grounded",
+      "actions": [
+        "sitToStand",
+        "standToSit",
+        "lieDown",
+        "getUp",
+        "groom",
+        "wave",
+        "petting",
+        "earPet",
+        "chinPet",
+        "backPet",
+        "wakeUp",
+        "startled"
+      ],
+      "thresholdProfile": "general",
+      "squashStretch": {
+        "allowed": false
+      },
+      "airborneMovement": {
+        "allowed": false
+      },
+      "supportPhases": {
+        "mode": "all-frames"
+      },
+      "allowedDisconnectedComponents": []
+    },
+    {
+      "name": "semantic-squash-stretch",
+      "actions": [
+        "happy",
+        "failed",
+        "bellyPet",
+        "bellyRoll"
+      ],
+      "thresholdProfile": "squash-stretch",
+      "squashStretch": {
+        "allowed": true,
+        "maximumWidthRatio": 1.4,
+        "maximumHeightRatio": 1.4,
+        "maximumAreaRatio": 1.4
+      },
+      "airborneMovement": {
+        "allowed": false
+      },
+      "supportPhases": {
+        "mode": "all-frames"
+      },
+      "allowedDisconnectedComponents": []
+    },
+    {
+      "name": "airborne-physical",
+      "actions": [
+        "pickup",
+        "thrown",
+        "landing",
+        "jump"
+      ],
+      "thresholdProfile": "airborne",
+      "squashStretch": {
+        "allowed": true,
+        "maximumWidthRatio": 1.5,
+        "maximumHeightRatio": 1.5,
+        "maximumAreaRatio": 1.6
+      },
+      "airborneMovement": {
+        "allowed": true,
+        "rootTrajectorySource": "manifest.renderOffset-or-body-center"
+      },
+      "supportPhases": {
+        "mode": "declared-landing-only"
+      },
+      "allowedDisconnectedComponents": []
+    },
+    {
+      "name": "grounded-locomotion",
+      "actions": [
+        "walkLeft",
+        "walkRight",
+        "runLeft",
+        "runRight"
+      ],
+      "thresholdProfile": "locomotion",
+      "squashStretch": {
+        "allowed": false
+      },
+      "airborneMovement": {
+        "allowed": false
+      },
+      "supportPhases": {
+        "mode": "supplemental-contact-evidence"
+      },
+      "allowedDisconnectedComponents": []
+    }
+  ],
+  "waivers": []
+}

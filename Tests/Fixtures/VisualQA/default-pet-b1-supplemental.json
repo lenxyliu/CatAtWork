@@ -1,0 +1,202 @@
+{
+  "schemaVersion": "catatwork.visual-qa-supplemental/v1",
+  "packageDigest": "fed6c517ce352b00cb97479a922d897c77417a6f4f5c1110c0e874463b2118b8",
+  "assetVersion": "2026.07.23.6",
+  "collectorVersions": {
+    "b1Static": "TR-VISUAL-20260724-011",
+    "runtimeProbe": "434ad8890798cd04b671d80d8c0fae36c6ccf53ef7fd1c4848297ab26a3eb10f",
+    "metalProbe": "27cbcb07fa50d5e765d904e84e0d464a5893b49f8d3c4bb4ae67aca6eee2e28d"
+  },
+  "endpointPose": {
+    "reviewedEndpointCount": 62,
+    "requiredEndpointCount": 62,
+    "thresholdSource": "GitHub #17 / BC-025",
+    "mismatches": [
+      {
+        "action": "backPet",
+        "endpoint": "start",
+        "declared": "seated",
+        "observed": "standing/crouched"
+      },
+      {
+        "action": "backPet",
+        "endpoint": "end",
+        "declared": "seated",
+        "observed": "standing/crouched"
+      },
+      {
+        "action": "bellyPet",
+        "endpoint": "start",
+        "declared": "seated",
+        "observed": "lying/crouched"
+      },
+      {
+        "action": "bellyPet",
+        "endpoint": "end",
+        "declared": "seated",
+        "observed": "lying/crouched"
+      }
+    ]
+  },
+  "locomotion": {
+    "thresholdSource": "GitHub #13 / BC-022",
+    "cases": [
+      {
+        "id": "preview-walk-60",
+        "action": "walkRight",
+        "nearZeroDurationMilliseconds": 2900,
+        "distanceRatio": 0,
+        "strideErrorRatio": 1,
+        "supportSlipPixels": 0,
+        "directionMatches": true
+      },
+      {
+        "id": "preview-run-120",
+        "action": "runRight",
+        "nearZeroDurationMilliseconds": 2900,
+        "distanceRatio": 0,
+        "strideErrorRatio": 1,
+        "supportSlipPixels": 0,
+        "directionMatches": true
+      },
+      {
+        "id": "shoo-left-60",
+        "action": "walkLeft",
+        "nearZeroDurationMilliseconds": 1350,
+        "distanceRatio": 0.42,
+        "strideErrorRatio": 0.58,
+        "supportSlipPixels": 6,
+        "directionMatches": true
+      },
+      {
+        "id": "deceleration-right-120",
+        "action": "walkRight",
+        "nearZeroDurationMilliseconds": 1000,
+        "distanceRatio": 0.51,
+        "strideErrorRatio": 0.49,
+        "supportSlipPixels": 5,
+        "directionMatches": true
+      }
+    ]
+  },
+  "cadence": {
+    "thresholdSource": "GitHub #18 / BC-026",
+    "samples": [
+      {
+        "action": "idleEar",
+        "authoredFps": 12,
+        "refreshHz": 60,
+        "maximumFrameDurationErrorMilliseconds": 16.667,
+        "phaseDriftFramesAt60Seconds": 12
+      },
+      {
+        "action": "idleEar",
+        "authoredFps": 12,
+        "refreshHz": 120,
+        "maximumFrameDurationErrorMilliseconds": 16.667,
+        "phaseDriftFramesAt60Seconds": 12
+      },
+      {
+        "action": "walkRight",
+        "authoredFps": 14,
+        "refreshHz": 60,
+        "maximumFrameDurationErrorMilliseconds": 28.571,
+        "phaseDriftFramesAt60Seconds": 14
+      },
+      {
+        "action": "walkRight",
+        "authoredFps": 14,
+        "refreshHz": 120,
+        "maximumFrameDurationErrorMilliseconds": 28.571,
+        "phaseDriftFramesAt60Seconds": 14
+      },
+      {
+        "action": "runRight",
+        "authoredFps": 18,
+        "refreshHz": 60,
+        "maximumFrameDurationErrorMilliseconds": 22.223,
+        "phaseDriftFramesAt60Seconds": 18
+      },
+      {
+        "action": "runRight",
+        "authoredFps": 18,
+        "refreshHz": 120,
+        "maximumFrameDurationErrorMilliseconds": 22.223,
+        "phaseDriftFramesAt60Seconds": 18
+      }
+    ]
+  },
+  "renderSnapshot": {
+    "thresholdSource": "GitHub #19 / BC-027",
+    "samples": [
+      {
+        "delayMilliseconds": 0,
+        "refreshHz": 60,
+        "transparentFrameCount": 0,
+        "mixedSnapshotFrameCount": 0
+      },
+      {
+        "delayMilliseconds": 0,
+        "refreshHz": 120,
+        "transparentFrameCount": 0,
+        "mixedSnapshotFrameCount": 0
+      },
+      {
+        "delayMilliseconds": 16,
+        "refreshHz": 60,
+        "transparentFrameCount": 1,
+        "mixedSnapshotFrameCount": 0
+      },
+      {
+        "delayMilliseconds": 16,
+        "refreshHz": 120,
+        "transparentFrameCount": 2,
+        "mixedSnapshotFrameCount": 0
+      },
+      {
+        "delayMilliseconds": 50,
+        "refreshHz": 60,
+        "transparentFrameCount": 3,
+        "mixedSnapshotFrameCount": 0
+      },
+      {
+        "delayMilliseconds": 50,
+        "refreshHz": 120,
+        "transparentFrameCount": 6,
+        "mixedSnapshotFrameCount": 0
+      },
+      {
+        "delayMilliseconds": 100,
+        "refreshHz": 60,
+        "transparentFrameCount": 6,
+        "mixedSnapshotFrameCount": 0
+      },
+      {
+        "delayMilliseconds": 100,
+        "refreshHz": 120,
+        "transparentFrameCount": 12,
+        "mixedSnapshotFrameCount": 0
+      },
+      {
+        "delayMilliseconds": 250,
+        "refreshHz": 60,
+        "transparentFrameCount": 15,
+        "mixedSnapshotFrameCount": 0
+      },
+      {
+        "delayMilliseconds": 250,
+        "refreshHz": 120,
+        "transparentFrameCount": 30,
+        "mixedSnapshotFrameCount": 0
+      }
+    ]
+  },
+  "gazeBody": {
+    "thresholdSource": "GitHub #20 / BC-028",
+    "directionCount": 16,
+    "changedPixelsOutsideEyeROI": 0,
+    "bodyStateInvariant": true,
+    "alphaBoundsInvariant": true,
+    "additionalTextureRequestCount": 0
+  }
+}

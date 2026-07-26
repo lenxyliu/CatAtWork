@@ -1,0 +1,19 @@
+{
+  "name": "connected-components",
+  "expectedFindingId": "fixture/connected-components",
+  "observation": {
+    "observationId": "fixture/connected-components/unapproved",
+    "findingId": "fixture/connected-components",
+    "family": "connectedComponents",
+    "metric": "unapprovedSignificantComponents",
+    "value": 1,
+    "comparison": "zero",
+    "threshold": 0,
+    "thresholdSource": "fixture/components",
+    "severity": "error",
+    "action": "fixture",
+    "frames": [
+      1
+    ]
+  }
+}
