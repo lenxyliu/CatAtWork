@@ -1,6 +1,6 @@
 # CHG-20260726-003 — Add deterministic visual-QA hard gates
 
-- Status: draft
+- Status: complete
 - Change-Type: fix
 - Strategic-Change: yes
 - Owner: repository maintainers
@@ -10,7 +10,8 @@
 - ADR: ADR-0015
 - Design: docs/design/TEST-AND-RELEASE.md; docs/plans/PLAN-20260724-PET-VISUAL-REMEDIATION.md
 - TR: TR-VISUAL-20260726-001 through TR-VISUAL-20260726-007;
-  TR-GOVERNANCE-20260726-004 through TR-GOVERNANCE-20260726-008
+  TR-GOVERNANCE-20260726-004 through TR-GOVERNANCE-20260726-009;
+  TR-GITHUB-20260726-006
 
 ## Purpose
 
@@ -35,15 +36,17 @@ revised.
 
 ## Changes
 
-- Proposed: add a deterministic report schema and normalized JSON serializer.
-- Proposed: implement exact-known-failure baseline mode and fail-closed
+- Added a deterministic report schema and normalized JSON serializer.
+- Implemented exact-known-failure baseline mode and fail-closed
   release mode.
-- Proposed: add explicit action contracts, threshold provenance and
+- Added explicit action contracts, threshold provenance and
   structurally validated waivers.
-- Proposed: cover static package/source metrics and required supplemental
+- Covered static package/source metrics and required supplemental
   runtime evidence families.
-- Proposed: add a clean fixture plus one negative fixture per metric family.
-- Proposed: make hosted validation execute the B2 hard-gate suite.
+- Added a clean fixture plus 15 negative fixtures spanning every implemented
+  metric family.
+- Updated hosted validation to execute baseline mode and prove the current
+  known-defective package cannot release-pass.
 
 ## Compatibility
 
@@ -66,6 +69,10 @@ asset, atlas or authoring frame changes.
 - TR-GOVERNANCE-20260726-004..008 preserve the failed evidence-digest/staged
   checks, their recoveries and the successful staged implementation
   checkpoint.
+- TR-GITHUB-20260726-006 records the content-matched evidence comments on
+  GitHub #14 and #15.
+- TR-GOVERNANCE-20260726-009 records the final committed branch verification
+  and artifact exclusion.
 
 ## Rollback
 
@@ -78,3 +85,6 @@ candidate without a superseding policy decision.
 
 - 2026-07-26: created before implementation after reproducing BC-030 on the
   exact accepted B2 base.
+- 2026-07-26: finalized at local implementation checkpoint
+  `32203ad88eecbe837a3965f76476bb33566c0a3f` after all B2 exit gates and
+  GitHub evidence publication; hosted PR acceptance remains the next task.

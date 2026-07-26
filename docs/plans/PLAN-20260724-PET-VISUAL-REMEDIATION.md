@@ -8,11 +8,11 @@
 - Master-Register: https://github.com/lenxyliu/CatAtWork/issues/15
 - Child-Issues: #9–#14 and #16–#21
 - Current-Production-Evidence: `assetVersion 2026.07.23.6`
-- Current-Checkpoint: B1 evidence accepted by
-  [PR #23](https://github.com/lenxyliu/CatAtWork/pull/23) as
-  `054c05f4450a162b981d980456abdc443521a530`; its plan-ledger closure was
-  accepted by [PR #24](https://github.com/lenxyliu/CatAtWork/pull/24) as
-  `eb988253689d4ea31c462f4ef6b76015a61a4630`; B2 has not started
+- Current-Checkpoint: B2 local implementation is complete on
+  `codex/visual-qa-gates@32203ad88eecbe837a3965f76476bb33566c0a3f`;
+  exact baseline, release rejection, negative fixtures, determinism, Swift
+  and local governance pass. The branch is not pushed or accepted on `main`;
+  B3 has not started
 
 ## 1. Objective
 
@@ -557,7 +557,7 @@ Update rows and append dated events; do not erase a failed or superseded event.
 | --- | --- | --- | --- | --- |
 | B0 | complete | `main@0ca2b518d5a079ace1ef1e6d9a6892a5259b080e` | CHG-20260724-001/002; TR-GOVERNANCE-20260724-001..004 | Preserve the accepted checkpoint |
 | B1 | complete | evidence [PR #23](https://github.com/lenxyliu/CatAtWork/pull/23) accepted as `054c05f4450a162b981d980456abdc443521a530`; closure [PR #24](https://github.com/lenxyliu/CatAtWork/pull/24) accepted as `eb988253689d4ea31c462f4ef6b76015a61a4630` | ISSUE-015..026; BC-018..029; CHG-20260724-003; CHG-20260726-001/002; TR-VISUAL-20260724-001..011; TR-GITHUB-20260724-003; TR-GITHUB-20260726-001..005; TR-GOVERNANCE-20260724-005; TR-GOVERNANCE-20260726-001..003; evidence manifest `1c037439b73fa07fa188b20efd8f08f5fcc24b547ba9d2a1e6124fd645bee0d6`; final B1 head `273057ad7663a1c7df775821cc1a7c929e7a0324` passed hosted `governance`/`swift` | Preserve the accepted checkpoint |
-| B2 | ready-not-started | start only from accepted `main` after B1 publication closure | GitHub #14; B1 current-confirmed baseline | Open a fresh Local task and create `codex/visual-qa-gates` before edits |
+| B2 | implementation-complete-awaiting-publication | `codex/visual-qa-gates@32203ad88eecbe837a3965f76476bb33566c0a3f` from `main@f829cc2b05a582e5e45b15e6a6d09932fcd66999` | ISSUE-027; BC-030; ADR-0015; CHG-20260726-003; TR-VISUAL-20260726-001..007; TR-GOVERNANCE-20260726-004..009; TR-GITHUB-20260726-006; GitHub #14 [comment 5084011530](https://github.com/lenxyliu/CatAtWork/issues/14#issuecomment-5084011530); #15 [comment 5084011625](https://github.com/lenxyliu/CatAtWork/issues/15#issuecomment-5084011625) | Publish the exact B2 branch through a reviewed PR with final-head hosted checks; do not start B3 before merge |
 | B3 | blocked-by-B2 | not started | GitHub #9/#11/#12/#16/#17/#21 | Decide canonical scale/root/pose compatibility contract |
 | B4 | blocked-by-B3 | not started | GitHub #9/#10/#11/#12/#16/#17/#21 | Freeze identity references before changing production frames |
 | B5 | blocked-by-B2 | not started | GitHub #13/#18 | Reproduce all locomotion entry paths with synchronized logs |
@@ -619,6 +619,18 @@ Update rows and append dated events; do not erase a failed or superseded event.
   passed as TR-GITHUB-20260726-005 and created
   [comment 5083176789](https://github.com/lenxyliu/CatAtWork/issues/15#issuecomment-5083176789).
   No child Issue status or B1 conclusion changed, and B2 remained not started.
+- 2026-07-26: B2 implemented deterministic report schema v1, exact
+  known-failure baseline mode, fail-closed release mode, explicit action and
+  waiver contracts, 15 negative metric-family fixtures and hosted workflow
+  gates on `codex/visual-qa-gates`. Checkpoint
+  `32203ad88eecbe837a3965f76476bb33566c0a3f` produced 13,104 observations,
+  matched all 11 reviewed current findings with zero new/missing findings,
+  rejected asset 2026.07.23.6 in release mode, produced byte-identical repeat
+  reports and passed 22 Python plus 57 Swift tests. GitHub #14 and #15 received
+  content-matched checkpoint comments. No runtime, package metadata or
+  production artwork changed; no child Issue was closed or marked fixed; B3
+  did not start. B2 remains unaccepted until its PR final head passes hosted
+  `governance`/`swift` and squash-merges to `main`.
 
 ## 10. Plan revision rules
 
@@ -640,3 +652,4 @@ Update rows and append dated events; do not erase a failed or superseded event.
 | 2026-07-24 | CHG-20260724-003 | Recorded B1 PR #23 and initial hosted check verification while keeping B2 blocked pending merge. |
 | 2026-07-26 | CHG-20260726-001 | Recorded the reviewed B1 squash merge, final hosted checks, #15 publication evidence and B2 not-started boundary. |
 | 2026-07-26 | CHG-20260726-002 | Preserved the failed and recovered final #15 publication attempts and the accepted closure-PR evidence. |
+| 2026-07-26 | CHG-20260726-003 | Completed the local B2 deterministic visual-QA gates, exact baseline/release evidence and publication-ready checkpoint without starting B3. |
