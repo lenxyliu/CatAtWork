@@ -49,7 +49,10 @@ jobs:
           python3 --version
           python3 -c 'import PIL; print("Pillow", PIL.__version__)'
       - name: Visual QA fixture gates
-        run: python3 -B -m unittest Scripts.tests.test_visual_qa
+        run: >-
+          python3 -B -m unittest
+          Scripts.tests.test_visual_qa
+          Scripts.tests.test_asset_contract
       - name: Swift build
         run: swift build
       - name: Swift unit tests

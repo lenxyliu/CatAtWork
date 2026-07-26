@@ -15,6 +15,7 @@ public enum PetPackageError: Error, Equatable {
     case tooManyResources
     case unsupportedResource(String)
     case executableResourceNotAllowed(String)
+    case canonicalContentInvalid(String)
 }
 
 public struct ImportedPet: Sendable {
@@ -113,9 +114,196 @@ public struct PetPackageImporter: Sendable {
                 throw PetPackageError.invalidImage(frame.image)
             }
         }
+        if manifest.formatVersion == 2 {
+            try validateCanonicalContent(
+                manifest: manifest,
+                root: root,
+                imageSizes: imageSizes
+            )
+        }
 
         let highFrame = manifest.animations.allSatisfy { $0.frames.count >= 24 }
         return ImportedPet(rootURL: root, manifest: manifest, isHighFrame: highFrame)
+    }
+
+    private func validateCanonicalContent(
+        manifest: PetManifest,
+        root: URL,
+        imageSizes: [String: PixelSize]
+    ) throws {
+        guard let canvas = manifest.authoredCanvas,
+              let policy = manifest.componentPolicy else {
+            throw PetPackageError.canonicalContentInvalid("missing canonical policy")
+        }
+        let animationFrames = manifest.animations.flatMap { animation in
+            animation.frames.enumerated().map {
+                (animation.id, $0.offset, $0.element)
+            }
+        }
+        let lookFrames = manifest.lookDirections.enumerated().map {
+            ("lookDirections", $0.offset, $0.element.frame)
+        }
+        let scopedFrames = animationFrames + lookFrames
+        let grouped = Dictionary(grouping: scopedFrames, by: { $0.2.image })
+
+        for (relativePath, frames) in grouped {
+            guard imageSizes[relativePath] != nil else {
+                throw PetPackageError.resourceMissing(relativePath)
+            }
+            let url = root.appendingPathComponent(relativePath)
+            guard let source = CGImageSourceCreateWithURL(url as CFURL, nil),
+                  let atlas = CGImageSourceCreateImageAtIndex(source, 0, nil) else {
+                throw PetPackageError.invalidImage(relativePath)
+            }
+            for (animation, frameIndex, frame) in frames {
+                let crop: CGImage
+                if let texture = frame.textureRect {
+                    guard let extracted = atlas.cropping(
+                        to: CGRect(
+                            x: texture.x,
+                            y: texture.y,
+                            width: texture.width,
+                            height: texture.height
+                        )
+                    ) else {
+                        throw PetPackageError.canonicalContentInvalid(
+                            "\(animation) frame \(frameIndex): invalid atlas crop"
+                        )
+                    }
+                    crop = extracted
+                } else {
+                    crop = atlas
+                }
+                guard crop.width == canvas.width, crop.height == canvas.height,
+                      let alpha = Self.alphaBytes(from: crop) else {
+                    throw PetPackageError.canonicalContentInvalid(
+                        "\(animation) frame \(frameIndex): invalid canonical RGBA crop"
+                    )
+                }
+                guard let bounds = Self.alphaBounds(
+                    alpha,
+                    width: crop.width,
+                    height: crop.height
+                ),
+                      bounds.minX >= canvas.safeMargin,
+                      bounds.minY >= canvas.safeMargin,
+                      crop.width - bounds.maxX - 1 >= canvas.safeMargin,
+                      crop.height - bounds.maxY - 1 >= canvas.safeMargin else {
+                    throw PetPackageError.canonicalContentInvalid(
+                        "\(animation) frame \(frameIndex): safe margin"
+                    )
+                }
+                let areas = Self.componentAreas(
+                    alpha,
+                    width: crop.width,
+                    height: crop.height,
+                    threshold: policy.alphaThreshold,
+                    minimumArea: policy.minimumArea
+                )
+                guard !areas.isEmpty else {
+                    throw PetPackageError.canonicalContentInvalid(
+                        "\(animation) frame \(frameIndex): empty material"
+                    )
+                }
+                let secondary = Array(areas.dropFirst())
+                let matching = policy.exceptions.filter {
+                    $0.animation == animation &&
+                        $0.frames.contains(frameIndex) &&
+                        $0.reviewId == frame.componentExceptionReviewId
+                }
+                if secondary.isEmpty {
+                    guard frame.componentExceptionReviewId == nil else {
+                        throw PetPackageError.canonicalContentInvalid(
+                            "\(animation) frame \(frameIndex): unused component exception"
+                        )
+                    }
+                } else {
+                    guard matching.count == 1,
+                          secondary.count <= matching[0].maximumSecondaryComponents,
+                          (secondary.max() ?? 0) <= matching[0].maximumSecondaryArea else {
+                        throw PetPackageError.canonicalContentInvalid(
+                            "\(animation) frame \(frameIndex): disconnected components"
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    private static func alphaBytes(from image: CGImage) -> [UInt8]? {
+        let width = image.width
+        let height = image.height
+        var rgba = [UInt8](repeating: 0, count: width * height * 4)
+        guard let colorSpace = CGColorSpace(name: CGColorSpace.sRGB) else { return nil }
+        let bitmapInfo = CGBitmapInfo.byteOrder32Big.rawValue |
+            CGImageAlphaInfo.premultipliedLast.rawValue
+        let created = rgba.withUnsafeMutableBytes { bytes in
+            guard let context = CGContext(
+                data: bytes.baseAddress,
+                width: width,
+                height: height,
+                bitsPerComponent: 8,
+                bytesPerRow: width * 4,
+                space: colorSpace,
+                bitmapInfo: bitmapInfo
+            ) else { return false }
+            context.draw(image, in: CGRect(x: 0, y: 0, width: width, height: height))
+            return true
+        }
+        guard created else { return nil }
+        return stride(from: 3, to: rgba.count, by: 4).map { rgba[$0] }
+    }
+
+    private static func alphaBounds(
+        _ alpha: [UInt8],
+        width: Int,
+        height: Int
+    ) -> (minX: Int, minY: Int, maxX: Int, maxY: Int)? {
+        var minX = width
+        var minY = height
+        var maxX = -1
+        var maxY = -1
+        for y in 0..<height {
+            for x in 0..<width where alpha[y * width + x] > 0 {
+                minX = min(minX, x)
+                minY = min(minY, y)
+                maxX = max(maxX, x)
+                maxY = max(maxY, y)
+            }
+        }
+        return maxX >= 0 ? (minX, minY, maxX, maxY) : nil
+    }
+
+    private static func componentAreas(
+        _ alpha: [UInt8],
+        width: Int,
+        height: Int,
+        threshold: Int,
+        minimumArea: Int
+    ) -> [Int] {
+        var seen = [Bool](repeating: false, count: alpha.count)
+        var areas: [Int] = []
+        for start in alpha.indices where !seen[start] && alpha[start] >= threshold {
+            seen[start] = true
+            var stack = [start]
+            var area = 0
+            while let current = stack.popLast() {
+                area += 1
+                let x = current % width
+                let y = current / width
+                for nextY in max(0, y - 1)...min(height - 1, y + 1) {
+                    for nextX in max(0, x - 1)...min(width - 1, x + 1) {
+                        let next = nextY * width + nextX
+                        if !seen[next], alpha[next] >= threshold {
+                            seen[next] = true
+                            stack.append(next)
+                        }
+                    }
+                }
+            }
+            if area >= minimumArea { areas.append(area) }
+        }
+        return areas.sorted(by: >)
     }
 
     private func validatePackageFiles(root: URL) throws -> [URL] {

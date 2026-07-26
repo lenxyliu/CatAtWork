@@ -22,6 +22,7 @@ public struct PetPackageContract: Sendable {
     private let nextAnimations: [String: String]
     public let poseRouter: PoseTransitionRouter
     public let pixelsPerBodyUnit: Double
+    public let compatibilityMode: PetPackageCompatibilityMode
 
     /// Complete legacy contract used when no package has been published yet.
     public static let standard = PetPackageContract()
@@ -31,6 +32,7 @@ public struct PetPackageContract: Sendable {
         nextAnimations = [:]
         poseRouter = PoseTransitionRouter()
         pixelsPerBodyUnit = Self.referencePixelsPerBodyUnit
+        compatibilityMode = .legacyFormat1
     }
 
     public init(manifest: PetManifest) {
@@ -44,6 +46,7 @@ public struct PetPackageContract: Sendable {
         nextAnimations = compiledNext
         poseRouter = PoseTransitionRouter(manifest: manifest)
         pixelsPerBodyUnit = manifest.pixelsPerBodyUnit
+        compatibilityMode = manifest.formatVersion == 2 ? .canonicalFormat2 : .legacyFormat1
     }
 
     /// Resolves an exact capability first, then the documented semantic
