@@ -1,0 +1,225 @@
+{
+  "schemaVersion": "catatwork.interaction/v1",
+  "status": "governed",
+  "foundationContract": {
+    "path": "Config/DefaultPet/foundation-contract.json",
+    "sha256": "15295361a0a264b7728ecc815ebd42918033d6e575fb7f35fa6dd3037c948151",
+    "actionFrameTreeSHA256": "07d4071cc37e4433d2d76ea52fa40376c627b53f66c4ffed10cf4d84b4ccbfb8",
+    "canonicalSeatedFrameSHA256": "b34afd33be6781bd0074a8ab02b09bb9bd45812ace7e0a48df6319f53a99790d"
+  },
+  "scope": {
+    "actions": [
+      "idleEar",
+      "idleTail",
+      "groom",
+      "wave",
+      "petting",
+      "earPet",
+      "chinPet",
+      "backPet",
+      "curious",
+      "working",
+      "waiting",
+      "happy",
+      "startled",
+      "failed"
+    ],
+    "actionCount": 14,
+    "frameCount": 336,
+    "framesPerAction": 24,
+    "foundationReferenceAction": "idle"
+  },
+  "sourcePolicy": {
+    "sheetSize": {
+      "width": 1774,
+      "height": 887
+    },
+    "layout": {
+      "rows": 2,
+      "columns": 4,
+      "poseCount": 8
+    },
+    "allowedPixelOperations": [
+      "chroma-key",
+      "connected-pose-extraction",
+      "transparent-padding-crop",
+      "integer-translation-to-authored-canvas",
+      "fixed-canonical-material-palette-pull",
+      "exact-canonical-endpoint-copy"
+    ],
+    "resizingOrResampling": false
+  },
+  "endpointPolicy": {
+    "referenceAction": "idle",
+    "referenceFrame": 0,
+    "requiredAtInteractionFrames": [
+      0,
+      23
+    ],
+    "comparison": "canonical-rgba-digest"
+  },
+  "interactionDirectionPolicy": {
+    "baseResponse": "screen-right",
+    "runtimeMirrorForPointerLeft": true,
+    "minimumHeadProxyDeltaPixels": 3.5,
+    "actions": {
+      "petting": {
+        "sourcePose": 3
+      },
+      "earPet": {
+        "sourcePose": 3
+      },
+      "chinPet": {
+        "sourcePose": 2
+      },
+      "backPet": {
+        "sourcePose": 2
+      }
+    },
+    "runtimeSource": "Sources/CatAtWork/PetWindowController.swift"
+  },
+  "reviewPolicy": {
+    "loopRepetitions": 5,
+    "requiredFiveLoopActions": [
+      "petting",
+      "curious",
+      "working",
+      "waiting"
+    ],
+    "nonLoopReview": "repeated-complete-plays"
+  },
+  "actions": [
+    {
+      "id": "idleEar",
+      "loop": false,
+      "fps": 12,
+      "startPose": "seated",
+      "endPose": "seated",
+      "thresholdProfile": "micro",
+      "poseOrder": [0, 1, 2, 3, 2, 1, 0]
+    },
+    {
+      "id": "idleTail",
+      "loop": false,
+      "fps": 12,
+      "startPose": "seated",
+      "endPose": "seated",
+      "thresholdProfile": "micro",
+      "poseOrder": [-1, 5, 5, -1]
+    },
+    {
+      "id": "groom",
+      "loop": false,
+      "fps": 12,
+      "startPose": "seated",
+      "endPose": "seated",
+      "thresholdProfile": "general",
+      "poseOrder": [0, 1, 2, 3, 4, 5, 6, 7]
+    },
+    {
+      "id": "wave",
+      "loop": false,
+      "fps": 12,
+      "startPose": "seated",
+      "endPose": "seated",
+      "thresholdProfile": "general",
+      "poseOrder": [0, 1, 2, 3, 4, 5, 6, 7]
+    },
+    {
+      "id": "petting",
+      "loop": true,
+      "fps": 12,
+      "startPose": "seated",
+      "endPose": "seated",
+      "thresholdProfile": "general",
+      "poseOrder": [0, 1, 2, 3, 4, 5, 6, 7]
+    },
+    {
+      "id": "earPet",
+      "loop": false,
+      "fps": 12,
+      "startPose": "seated",
+      "endPose": "seated",
+      "thresholdProfile": "general",
+      "poseOrder": [0, 1, 2, 3, 4, 5, 6, 7]
+    },
+    {
+      "id": "chinPet",
+      "loop": false,
+      "fps": 12,
+      "startPose": "seated",
+      "endPose": "seated",
+      "thresholdProfile": "general",
+      "poseOrder": [0, 1, 2, 3, 4, 5, 6, 7]
+    },
+    {
+      "id": "backPet",
+      "loop": false,
+      "fps": 12,
+      "startPose": "seated",
+      "endPose": "seated",
+      "thresholdProfile": "general",
+      "poseOrder": [0, 1, 2, 3, 4, 5, 6, 7]
+    },
+    {
+      "id": "curious",
+      "loop": true,
+      "fps": 12,
+      "startPose": "seated",
+      "endPose": "seated",
+      "thresholdProfile": "micro",
+      "poseOrder": [0, 1, 2, 3, 4, 5, 4, 3, 2, 1, 0]
+    },
+    {
+      "id": "working",
+      "loop": true,
+      "fps": 12,
+      "startPose": "seated",
+      "endPose": "seated",
+      "thresholdProfile": "micro",
+      "poseOrder": [0, 2, 6, 5, 4, 5, 6, 2, 0]
+    },
+    {
+      "id": "waiting",
+      "loop": true,
+      "fps": 7,
+      "startPose": "seated",
+      "endPose": "seated",
+      "thresholdProfile": "micro",
+      "poseOrder": [
+        0, 0, 0, 0, 0, 0, 0, 0,
+        1, 2, 3, 2, 1,
+        0, 0, 0, 0, 0, 0, 0, 0, 0
+      ]
+    },
+    {
+      "id": "happy",
+      "loop": false,
+      "fps": 14,
+      "startPose": "seated",
+      "endPose": "seated",
+      "thresholdProfile": "squash-stretch",
+      "poseOrder": [0, 1, 2, 3, 4, 5, 6, 7]
+    },
+    {
+      "id": "startled",
+      "loop": false,
+      "fps": 12,
+      "startPose": "seated",
+      "endPose": "seated",
+      "holdStartMs": 100,
+      "holdEndMs": 180,
+      "thresholdProfile": "general",
+      "poseOrder": [0, 1, 2, 3, 4, 5, 6, 7]
+    },
+    {
+      "id": "failed",
+      "loop": false,
+      "fps": 12,
+      "startPose": "seated",
+      "endPose": "seated",
+      "thresholdProfile": "squash-stretch",
+      "poseOrder": [0, 1, 2, 3, 4, 3, 2, 1, 0]
+    }
+  ]
+}

@@ -63,3 +63,21 @@ The root `ISSUE-CLASSIFICATION.md` is a frozen pre-governance snapshot. Its rows
   TR-GITHUB-20260728-001 preserves the exact Issue comment links. This accepts
   candidate 9 for the foundation family only; the child Issues remain open
   until later B4 families are rebuilt and evaluated.
+
+## 2026-07-28 B4 interaction color-target blocker
+
+- Interaction candidates 1–4 were generated and evaluated outside production.
+  Candidate 4 passed 6,310 B2 observations and all seven scoped custom checks,
+  but those checks only prove consistency with the accepted frozen palette.
+- Native review supplied new ISSUE-016/BC-019 evidence: the generated
+  effect-sheet color is the accepted visual target, while the running
+  palette-normalized production PNG is not. The sRGB Metal paths are
+  byte-identical between the temporary app source and repository source, and
+  the native seated frame is the frozen production PNG.
+- The frozen palette pull changed 99.205807% of opaque pixels in sampled
+  `waiting` pose 0; dark-material source-to-normalized ΔE00 was 7.225664.
+  This cannot be fixed only in interaction frames because exact frozen seated
+  endpoints would flash. TR-ASSET-20260728-017 preserves the blocker.
+- No interaction raster was installed or staged. Foundation correction must
+  be reviewed separately before resuming interaction; physical, integration
+  and B5–B8 remain not started.
