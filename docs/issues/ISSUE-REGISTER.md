@@ -56,3 +56,10 @@ The root `ISSUE-CLASSIFICATION.md` is a frozen pre-governance snapshot. Its rows
   already registered near-zero/phase-bound runtime concern remains
   `ISSUE-019` for the B5 display-time locomotion slice; no B5 runtime behavior
   is changed by this B4 asset branch.
+- PR #30 final head
+  `3b39c0f7385fcbb288d7eebc589fa5a00df324f3` passed hosted governance and
+  Swift/package checks, received procedural review 4793818333 and was guarded
+  squash-merged as `48ae9466e460ddbeab5d7b39a245760614568448`.
+  TR-GITHUB-20260728-001 preserves the exact Issue comment links. This accepts
+  candidate 9 for the foundation family only; the child Issues remain open
+  until later B4 families are rebuilt and evaluated.
