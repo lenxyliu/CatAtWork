@@ -101,6 +101,8 @@ or publish a full format-2 package.
 - TR-GITHUB-20260728-002 preserves the first push failure caused by the
   requested sibling checkpoint lagging the accepted foundation-closure main
   commit; the checkpoint must be rebased before publication.
+- TR-GITHUB-20260728-003 records the successful rebase/push and the exact
+  blocking evidence comments on GitHub #10 and #15.
 - Production install/diff/LFS, full Python, fresh-path Swift, final package,
   PR, hosted checks and merge were skipped because the visual prerequisite
   failed before staging rasters.
