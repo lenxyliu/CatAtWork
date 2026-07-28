@@ -4,6 +4,11 @@ All user-visible changes are summarized here. Implementation and test evidence l
 
 ## Unreleased
 
+- Corrected the default pet's nine-action foundation coat color to the
+  user-accepted generated appearance while retaining fine fur detail across
+  all 216 frames. Animation timing, scale, geometry, interaction, physical
+  behavior and the runtime package are unchanged
+  ([CHG-20260728-001](docs/changes/CHG-20260728-001-default-pet-foundation-color-correction.md)).
 - Added canonical format-2 `.catpet` support with fixed world scale/canvas,
   anatomical root and support anchors, identity/pose/color/component
   metadata, and deterministic source-to-atlas validation. Existing format-1
