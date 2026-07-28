@@ -98,6 +98,9 @@ or publish a full format-2 package.
   governance rerun.
 - TR-GOVERNANCE-20260728-008 records the successful 31-path staged
   governance execution at the same governed-content digest.
+- TR-GITHUB-20260728-002 preserves the first push failure caused by the
+  requested sibling checkpoint lagging the accepted foundation-closure main
+  commit; the checkpoint must be rebased before publication.
 - Production install/diff/LFS, full Python, fresh-path Swift, final package,
   PR, hosted checks and merge were skipped because the visual prerequisite
   failed before staging rasters.
