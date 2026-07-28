@@ -103,6 +103,16 @@ declared space, implicit conversion or embedded ICC profile is invalid. Atlas
 packing preserves straight RGBA bytes exactly and strips no meaningful pixel
 content.
 
+Generated effect-sheet pixels are outside the `.catpet` contract. When B4
+uses them to produce a canonical source PNG, ADR-0017 requires a governed
+source-effect color/detail oracle and one package-global deterministic
+material transform. That transform corrects low-frequency material location
+while retaining a bounded same-material local-detail residual; it may change
+RGB only. Once the fixed-canvas source PNG exists, the format-2
+`conversion: "identity"` rule still requires exact RGBA source/atlas
+equality; package build or runtime rendering must not repeat or compensate for
+the authoring transform.
+
 ### Disconnected components
 
 `componentPolicy.default` is `forbid`, connectivity is 8, and alpha/area
@@ -174,3 +184,4 @@ asset rebuild, not an import-time rewrite.
 | 2026-07-23 | CHG-20260723-001 | Defined capabilities, pose/next semantics, scale, fallback and session reset. |
 | 2026-07-23 | CHG-20260723-011 | Specified exact lookup, fallback/suppression, pose vocabulary, density-normalized scale, next-action ownership, trim hit bounds and atomic session reset. |
 | 2026-07-26 | CHG-20260726-005 | Added versioned canonical format-2 canvas/scale, roots/supports, identity rig, endpoint signatures, sRGB/component policy, pixel round-trip and explicit format-1 migration behavior. |
+| 2026-07-28 | CHG-20260728-001 | Clarified the governed pre-authoring source-effect color oracle without changing format-2 identity conversion or package/runtime color semantics. |

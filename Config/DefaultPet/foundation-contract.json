@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "catatwork.foundation/v1",
+  "schemaVersion": "catatwork.foundation/v2",
   "status": "frozen",
   "scope": {
     "change": "CHG-20260727-002",
@@ -661,12 +661,65 @@
   },
   "materialReferences": {
     "normalization": {
-      "method": "fixed-canonical-material-palette-pull",
-      "sourceWeight": 1,
-      "canonicalWeight": 4,
+      "method": "fixed-source-effect-detail-preserving-material-pull",
+      "sourceWeight": 2,
+      "canonicalWeight": 3,
       "lightMinimumLStar": 82,
       "darkMaximumLStar": 38,
+      "classificationAlphaMinimum": 12,
+      "detailNeighborhoodRadius": 2,
+      "detailWeightNumerator": 7,
+      "detailWeightDenominator": 10,
+      "rounding": "nearest-integer-ties-to-even",
       "perActionOrFrameTuning": false
+    },
+    "sourceEffectOracle": {
+      "referenceId": "interaction-waiting-pose-0",
+      "sourceSheetSHA256": "b2551459200ac24315bf3bbd42e7ebf29a55de5dad405d9054170cfd4c11cc51",
+      "sourceFrameSHA256": "a8a1bab53518d0b4719ab7a025786e0618d4a5c4bf94e0e2a1b976c3c1de411d",
+      "sourceFrameSize": [
+        329,
+        415
+      ],
+      "visiblePixelCount": 68749,
+      "visibleAlphaMinimum": 12,
+      "materialLabs": {
+        "light": [
+          89.151942,
+          7.548101,
+          10.90011
+        ],
+        "warm": [
+          71.214757,
+          14.071546,
+          14.966941
+        ],
+        "dark": [
+          9.641574,
+          19.121046,
+          13.61472
+        ]
+      },
+      "materialLabTolerance": 0.000001,
+      "maximumAuthoredDeltaE00": 3,
+      "detailRetention": {
+        "metric": "same-material-right-down-lstar-gradient-rms-ratio",
+        "sourcePairCounts": {
+          "light": 48348,
+          "warm": 30678,
+          "dark": 48860
+        },
+        "sourceGradientRMS": {
+          "light": 1.890557,
+          "warm": 5.382057,
+          "dark": 4.477304
+        },
+        "sourceMetricTolerance": 0.000001,
+        "minimumAuthoredRatio": 0.98,
+        "maximumAuthoredRatio": 1.05
+      },
+      "requireSizeIdentity": true,
+      "requireAlphaIdentity": true
     },
     "sampling": {
       "alphaMinimum": 160,
@@ -676,29 +729,23 @@
     },
     "lightCoat": {
       "srgbMedian": [
-        248,
-        224,
-        207
+        250,
+        225,
+        212
       ]
     },
     "warmCoat": {
       "srgbMedian": [
-        235,
-        186,
-        153
-      ],
-      "renderTarget": [
-        220,
-        170,
-        140
-      ],
-      "renderTargetMaximumDeltaE00": 4.242335
+        221,
+        157,
+        125
+      ]
     },
     "darkMask": {
       "srgbMedian": [
-        82,
-        38,
-        21
+        53,
+        13,
+        3
       ]
     },
     "eyeBlue": {

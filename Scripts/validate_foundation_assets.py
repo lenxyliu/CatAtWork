@@ -325,6 +325,30 @@ def source_checks(
     canvas = foundation["authoredCanvas"]
     component_policy = foundation["componentPolicy"]
     checks: list[dict[str, Any]] = []
+    oracle = foundation["materialReferences"].get("sourceEffectOracle")
+    detail = oracle.get("detailRetention") if isinstance(oracle, dict) else None
+    checks.append(
+        {
+            "id": "material/source-effect-oracle-contract",
+            "passed": (
+                foundation.get("schemaVersion") == "catatwork.foundation/v2"
+                and isinstance(oracle, dict)
+                and oracle.get("referenceId") == "interaction-waiting-pose-0"
+                and oracle.get("maximumAuthoredDeltaE00") == 3
+                and oracle.get("requireSizeIdentity") is True
+                and oracle.get("requireAlphaIdentity") is True
+                and isinstance(detail, dict)
+                and detail.get("metric")
+                == "same-material-right-down-lstar-gradient-rms-ratio"
+                and detail.get("minimumAuthoredRatio") == 0.98
+                and detail.get("maximumAuthoredRatio") == 1.05
+            ),
+            "schemaVersion": foundation.get("schemaVersion"),
+            "oracleReferenceId": (
+                oracle.get("referenceId") if isinstance(oracle, dict) else None
+            ),
+        }
+    )
     action_ids = tuple(action["id"] for action in spec.get("actions", []))
     checks.append(
         {
@@ -453,6 +477,18 @@ def source_checks(
         "canonicalWeight": foundation["materialReferences"]["normalization"][
             "canonicalWeight"
         ],
+        "detailNeighborhoodRadius": foundation["materialReferences"][
+            "normalization"
+        ]["detailNeighborhoodRadius"],
+        "detailWeightNumerator": foundation["materialReferences"][
+            "normalization"
+        ]["detailWeightNumerator"],
+        "detailWeightDenominator": foundation["materialReferences"][
+            "normalization"
+        ]["detailWeightDenominator"],
+        "classificationAlphaMinimum": foundation["materialReferences"][
+            "normalization"
+        ]["classificationAlphaMinimum"],
         "perActionOrFrameTuning": False,
     }
     normalization_violations = [
@@ -467,7 +503,7 @@ def source_checks(
     ]
     checks.append(
         {
-            "id": "material/fixed-canonical-normalization",
+            "id": "material/fixed-detail-preserving-normalization",
             "passed": not normalization_violations,
             "expected": expected_normalization,
             "violations": normalization_violations,

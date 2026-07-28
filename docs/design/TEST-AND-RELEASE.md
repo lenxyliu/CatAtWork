@@ -125,6 +125,28 @@ fixtures. Until B4 creates a reviewed format-2 production package, CI also
 runs the unchanged B2 baseline/release oracle against asset `2026.07.23.6`;
 baseline must match exactly and release must continue to reject it.
 
+## B4 source-effect color gate
+
+Foundation color acceptance additionally binds the user-accepted generated
+effect source by source-sheet and extracted-frame SHA-256. A deterministic
+oracle applies the governed package-global normalization and requires:
+
+- source mode, size, visible-pixel count and recorded material measurements
+  to match the accepted effect input;
+- source and authored size/alpha identity;
+- light, warm and dark source-to-authored CIEDE2000 ΔE00 no greater than 3;
+- frozen same-material right/down L* gradient sample counts and RMS values to
+  match the bound effect source;
+- authored/source local-gradient RMS ratios between 0.98 and 1.05 for light,
+  warm and dark independently;
+- no per-action or per-frame tuning; and
+- the rebuilt foundation to pass the unchanged B2 scoped/release policy plus
+  all non-color foundation gates.
+
+Synthetic negative tests must reject source-hash drift and invalid
+normalization metadata. Direct native loop acceptance remains mandatory and
+is recorded separately from the automatic oracle.
+
 ## Revision log
 
 | Date | CHG | Revision |
@@ -139,3 +161,4 @@ baseline must match exactly and release must continue to reject it.
 | 2026-07-23 | CHG-20260723-008 | Changed push-to-main governance from full-baseline validation to the exact pushed diff. |
 | 2026-07-26 | CHG-20260726-003 | Added deterministic visual-QA report, baseline/release decision and waiver policy. |
 | 2026-07-26 | CHG-20260726-005 | Added canonical format-2 source/package, fail-closed negative, deterministic round-trip and legacy non-rewrite gates. |
+| 2026-07-28 | CHG-20260728-001 | Added the source-effect-to-authored color/detail oracle and retained separate automatic/native acceptance. |
