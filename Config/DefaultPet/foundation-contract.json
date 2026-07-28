@@ -1,0 +1,911 @@
+{
+  "schemaVersion": "catatwork.foundation/v1",
+  "status": "frozen",
+  "scope": {
+    "change": "CHG-20260727-002",
+    "issues": [
+      "#9",
+      "#10",
+      "#11",
+      "#12",
+      "#16",
+      "#17",
+      "#21"
+    ],
+    "actions": [
+      "idle",
+      "sitToStand",
+      "standToSit",
+      "lieDown",
+      "getUp",
+      "walkLeft",
+      "walkRight",
+      "runLeft",
+      "runRight"
+    ],
+    "framesPerAction": 24,
+    "frameCount": 216
+  },
+  "identitySheet": {
+    "path": "Assets/CatAtWork/identity/canonical-turnaround.png",
+    "sha256": "57cc330d4b7cc415f48d06fc01e5350dc47cf7b2d99b50afcd305e6a6203f6d4",
+    "width": 2022,
+    "height": 778,
+    "views": [
+      {
+        "id": "front",
+        "bounds": {
+          "x": 34,
+          "y": 174,
+          "width": 331,
+          "height": 445
+        },
+        "landmarks": {
+          "leftEyeCenter": {
+            "x": 192,
+            "y": 273
+          },
+          "rightEyeCenter": {
+            "x": 256,
+            "y": 273
+          },
+          "leftEarRoot": {
+            "x": 166,
+            "y": 237
+          },
+          "rightEarRoot": {
+            "x": 286,
+            "y": 237
+          },
+          "nose": {
+            "x": 224,
+            "y": 301
+          },
+          "mouth": {
+            "x": 224,
+            "y": 322
+          },
+          "shoulder": {
+            "x": 224,
+            "y": 380
+          },
+          "hip": {
+            "x": 224,
+            "y": 472
+          },
+          "leftForelimbJoint": {
+            "x": 191,
+            "y": 472
+          },
+          "rightForelimbJoint": {
+            "x": 257,
+            "y": 472
+          },
+          "leftHindlimbJoint": {
+            "x": 127,
+            "y": 493
+          },
+          "rightHindlimbJoint": {
+            "x": 321,
+            "y": 493
+          },
+          "tailRoot": {
+            "x": 104,
+            "y": 482
+          }
+        },
+        "materialROIs": {
+          "lightCoat": {
+            "x": 130,
+            "y": 337,
+            "width": 170,
+            "height": 125
+          },
+          "warmCoat": {
+            "x": 284,
+            "y": 380,
+            "width": 55,
+            "height": 145
+          },
+          "darkMask": {
+            "x": 155,
+            "y": 230,
+            "width": 135,
+            "height": 100
+          },
+          "leftEyeBlue": {
+            "x": 183,
+            "y": 261,
+            "width": 20,
+            "height": 25
+          },
+          "rightEyeBlue": {
+            "x": 247,
+            "y": 261,
+            "width": 20,
+            "height": 25
+          }
+        }
+      },
+      {
+        "id": "leftProfile",
+        "bounds": {
+          "x": 431,
+          "y": 182,
+          "width": 627,
+          "height": 441
+        },
+        "landmarks": {
+          "leftEyeCenter": {
+            "x": 1017,
+            "y": 280
+          },
+          "rightEyeCenter": {
+            "x": 997,
+            "y": 280
+          },
+          "leftEarRoot": {
+            "x": 972,
+            "y": 241
+          },
+          "rightEarRoot": {
+            "x": 1008,
+            "y": 245
+          },
+          "nose": {
+            "x": 1055,
+            "y": 302
+          },
+          "mouth": {
+            "x": 1042,
+            "y": 320
+          },
+          "shoulder": {
+            "x": 913,
+            "y": 368
+          },
+          "hip": {
+            "x": 711,
+            "y": 423
+          },
+          "leftForelimbJoint": {
+            "x": 918,
+            "y": 489
+          },
+          "rightForelimbJoint": {
+            "x": 866,
+            "y": 486
+          },
+          "leftHindlimbJoint": {
+            "x": 665,
+            "y": 492
+          },
+          "rightHindlimbJoint": {
+            "x": 746,
+            "y": 493
+          },
+          "tailRoot": {
+            "x": 585,
+            "y": 433
+          }
+        },
+        "materialROIs": {
+          "lightCoat": {
+            "x": 830,
+            "y": 330,
+            "width": 150,
+            "height": 135
+          },
+          "warmCoat": {
+            "x": 660,
+            "y": 350,
+            "width": 160,
+            "height": 145
+          },
+          "darkMask": {
+            "x": 930,
+            "y": 235,
+            "width": 100,
+            "height": 100
+          },
+          "eyeBlue": {
+            "x": 1008,
+            "y": 267,
+            "width": 19,
+            "height": 27
+          }
+        }
+      },
+      {
+        "id": "rear",
+        "bounds": {
+          "x": 1160,
+          "y": 179,
+          "width": 230,
+          "height": 466
+        },
+        "landmarks": {
+          "leftEyeCenter": {
+            "x": 1238,
+            "y": 269
+          },
+          "rightEyeCenter": {
+            "x": 1312,
+            "y": 269
+          },
+          "leftEarRoot": {
+            "x": 1204,
+            "y": 240
+          },
+          "rightEarRoot": {
+            "x": 1346,
+            "y": 240
+          },
+          "nose": {
+            "x": 1275,
+            "y": 307
+          },
+          "mouth": {
+            "x": 1275,
+            "y": 326
+          },
+          "shoulder": {
+            "x": 1275,
+            "y": 375
+          },
+          "hip": {
+            "x": 1275,
+            "y": 465
+          },
+          "leftForelimbJoint": {
+            "x": 1222,
+            "y": 478
+          },
+          "rightForelimbJoint": {
+            "x": 1328,
+            "y": 478
+          },
+          "leftHindlimbJoint": {
+            "x": 1198,
+            "y": 520
+          },
+          "rightHindlimbJoint": {
+            "x": 1352,
+            "y": 520
+          },
+          "tailRoot": {
+            "x": 1275,
+            "y": 472
+          }
+        },
+        "materialROIs": {
+          "lightCoat": {
+            "x": 1190,
+            "y": 220,
+            "width": 170,
+            "height": 150
+          },
+          "warmCoat": {
+            "x": 1190,
+            "y": 360,
+            "width": 170,
+            "height": 145
+          },
+          "darkPoints": {
+            "x": 1215,
+            "y": 500,
+            "width": 120,
+            "height": 100
+          }
+        }
+      },
+      {
+        "id": "rightProfile",
+        "bounds": {
+          "x": 1477,
+          "y": 192,
+          "width": 518,
+          "height": 444
+        },
+        "landmarks": {
+          "leftEyeCenter": {
+            "x": 1587,
+            "y": 294
+          },
+          "rightEyeCenter": {
+            "x": 1645,
+            "y": 291
+          },
+          "leftEarRoot": {
+            "x": 1541,
+            "y": 248
+          },
+          "rightEarRoot": {
+            "x": 1652,
+            "y": 247
+          },
+          "nose": {
+            "x": 1608,
+            "y": 320
+          },
+          "mouth": {
+            "x": 1609,
+            "y": 339
+          },
+          "shoulder": {
+            "x": 1668,
+            "y": 385
+          },
+          "hip": {
+            "x": 1812,
+            "y": 440
+          },
+          "leftForelimbJoint": {
+            "x": 1598,
+            "y": 506
+          },
+          "rightForelimbJoint": {
+            "x": 1667,
+            "y": 510
+          },
+          "leftHindlimbJoint": {
+            "x": 1773,
+            "y": 505
+          },
+          "rightHindlimbJoint": {
+            "x": 1844,
+            "y": 508
+          },
+          "tailRoot": {
+            "x": 1890,
+            "y": 447
+          }
+        },
+        "materialROIs": {
+          "lightCoat": {
+            "x": 1500,
+            "y": 345,
+            "width": 145,
+            "height": 130
+          },
+          "warmCoat": {
+            "x": 1680,
+            "y": 340,
+            "width": 180,
+            "height": 135
+          },
+          "darkMask": {
+            "x": 1510,
+            "y": 240,
+            "width": 145,
+            "height": 100
+          },
+          "leftEyeBlue": {
+            "x": 1578,
+            "y": 281,
+            "width": 20,
+            "height": 27
+          },
+          "rightEyeBlue": {
+            "x": 1636,
+            "y": 278,
+            "width": 20,
+            "height": 27
+          }
+        }
+      }
+    ]
+  },
+  "canonicalScale": {
+    "pixelsPerBodyUnit": 220,
+    "actionScaleOverridesAllowed": false,
+    "frameScaleOverridesAllowed": false,
+    "resamplingAllowedDuringPackaging": false
+  },
+  "authoredCanvas": {
+    "width": 665,
+    "height": 737,
+    "safeMargin": 16,
+    "colorSpace": {
+      "name": "sRGB",
+      "pixelFormat": "RGBA8",
+      "alphaMode": "straight",
+      "conversion": "identity"
+    }
+  },
+  "rootSystem": {
+    "anatomicalRoot": {
+      "x": 332.5,
+      "y": 537
+    },
+    "alphaCentroidProxyOffsetX": -32,
+    "alphaCentroidProxyReferenceDirection": "front-or-right",
+    "supportLineY": 537,
+    "derivedFromAlphaBounds": false,
+    "maximumRootTrackDeltaPixels": {
+      "micro": 1,
+      "general": 8,
+      "locomotion": 12
+    },
+    "maximumSupportTrackDeltaPixels": {
+      "micro": 1,
+      "general": 1,
+      "locomotion": 2
+    }
+  },
+  "poseTemplates": {
+    "seatedFront": {
+      "pose": "seated",
+      "view": "front",
+      "alphaBoundsTarget": {
+        "x": 160,
+        "y": 157,
+        "width": 345,
+        "height": 380
+      },
+      "rootAnchor": {
+        "x": 332.5,
+        "y": 537
+      },
+      "supportAnchors": [
+        {
+          "id": "leftForePaw",
+          "point": {
+            "x": 296,
+            "y": 537
+          },
+          "contact": true
+        },
+        {
+          "id": "rightForePaw",
+          "point": {
+            "x": 369,
+            "y": 537
+          },
+          "contact": true
+        },
+        {
+          "id": "leftHindPaw",
+          "point": {
+            "x": 237,
+            "y": 537
+          },
+          "contact": true
+        },
+        {
+          "id": "rightHindPaw",
+          "point": {
+            "x": 428,
+            "y": 537
+          },
+          "contact": true
+        }
+      ],
+      "materialROIs": {
+        "lightCoat": {
+          "x": 267,
+          "y": 330,
+          "width": 131,
+          "height": 118
+        },
+        "warmCoat": {
+          "x": 397,
+          "y": 390,
+          "width": 58,
+          "height": 102
+        },
+        "darkMask": {
+          "x": 258,
+          "y": 211,
+          "width": 149,
+          "height": 113
+        }
+      }
+    },
+    "standingLeft": {
+      "pose": "standing",
+      "view": "leftProfile",
+      "alphaBoundsTarget": {
+        "x": 72,
+        "y": 174,
+        "width": 521,
+        "height": 363
+      },
+      "rootAnchor": {
+        "x": 332.5,
+        "y": 537
+      },
+      "supportAnchors": [
+        {
+          "id": "frontPaw",
+          "point": {
+            "x": 486,
+            "y": 537
+          },
+          "contact": true
+        },
+        {
+          "id": "rearPaw",
+          "point": {
+            "x": 194,
+            "y": 537
+          },
+          "contact": true
+        }
+      ],
+      "materialROIs": {
+        "lightCoat": {
+          "x": 365,
+          "y": 296,
+          "width": 131,
+          "height": 112
+        },
+        "warmCoat": {
+          "x": 218,
+          "y": 330,
+          "width": 151,
+          "height": 126
+        },
+        "darkMask": {
+          "x": 450,
+          "y": 219,
+          "width": 92,
+          "height": 102
+        }
+      }
+    },
+    "standingRight": {
+      "pose": "standing",
+      "view": "rightProfile",
+      "alphaBoundsTarget": {
+        "x": 72,
+        "y": 174,
+        "width": 521,
+        "height": 363
+      },
+      "rootAnchor": {
+        "x": 332.5,
+        "y": 537
+      },
+      "supportAnchors": [
+        {
+          "id": "frontPaw",
+          "point": {
+            "x": 179,
+            "y": 537
+          },
+          "contact": true
+        },
+        {
+          "id": "rearPaw",
+          "point": {
+            "x": 471,
+            "y": 537
+          },
+          "contact": true
+        }
+      ],
+      "materialROIs": {
+        "lightCoat": {
+          "x": 169,
+          "y": 296,
+          "width": 131,
+          "height": 112
+        },
+        "warmCoat": {
+          "x": 296,
+          "y": 330,
+          "width": 151,
+          "height": 126
+        },
+        "darkMask": {
+          "x": 123,
+          "y": 219,
+          "width": 92,
+          "height": 102
+        }
+      }
+    },
+    "lyingLeft": {
+      "pose": "lying",
+      "view": "leftProfile",
+      "alphaBoundsTarget": {
+        "x": 82,
+        "y": 302,
+        "width": 501,
+        "height": 235
+      },
+      "rootAnchor": {
+        "x": 332.5,
+        "y": 537
+      },
+      "supportAnchors": [
+        {
+          "id": "chest",
+          "point": {
+            "x": 435,
+            "y": 537
+          },
+          "contact": true
+        },
+        {
+          "id": "hip",
+          "point": {
+            "x": 255,
+            "y": 537
+          },
+          "contact": true
+        }
+      ],
+      "materialROIs": {
+        "lightCoat": {
+          "x": 337,
+          "y": 365,
+          "width": 130,
+          "height": 91
+        },
+        "warmCoat": {
+          "x": 208,
+          "y": 374,
+          "width": 140,
+          "height": 92
+        },
+        "darkMask": {
+          "x": 430,
+          "y": 320,
+          "width": 92,
+          "height": 83
+        }
+      }
+    }
+  },
+  "materialReferences": {
+    "normalization": {
+      "method": "fixed-canonical-material-palette-pull",
+      "sourceWeight": 1,
+      "canonicalWeight": 4,
+      "lightMinimumLStar": 82,
+      "darkMaximumLStar": 38,
+      "perActionOrFrameTuning": false
+    },
+    "sampling": {
+      "alphaMinimum": 160,
+      "comparison": "CIEDE2000",
+      "adjacentMaximumDeltaE00": 3,
+      "canonicalMaximumDeltaE00": 6
+    },
+    "lightCoat": {
+      "srgbMedian": [
+        248,
+        224,
+        207
+      ]
+    },
+    "warmCoat": {
+      "srgbMedian": [
+        235,
+        186,
+        153
+      ],
+      "renderTarget": [
+        220,
+        170,
+        140
+      ],
+      "renderTargetMaximumDeltaE00": 4.242335
+    },
+    "darkMask": {
+      "srgbMedian": [
+        82,
+        38,
+        21
+      ]
+    },
+    "eyeBlue": {
+      "srgbReference": [
+        42,
+        164,
+        220
+      ]
+    }
+  },
+  "identityBudgets": {
+    "endpointHeadScaleRelativeDeviation": 0.03,
+    "endpointDarkSupportRelativeDeviation": 0.05
+  },
+  "deformationBudgets": {
+    "micro": {
+      "adjacentWidthRatio": 1.08,
+      "adjacentHeightRatio": 1.08,
+      "adjacentAreaRatio": 1.08,
+      "rootCentroidDeltaPixels": 1,
+      "supportDeltaPixels": 1,
+      "secondDifferenceRatio": 0.12,
+      "materialDeltaE00": 3,
+      "edgeClearancePixels": 4
+    },
+    "general": {
+      "adjacentWidthRatio": 1.15,
+      "adjacentHeightRatio": 1.15,
+      "adjacentAreaRatio": 1.2,
+      "rootCentroidDeltaPixels": 8,
+      "supportDeltaPixels": 1,
+      "secondDifferenceRatio": 0.25,
+      "materialDeltaE00": 3,
+      "edgeClearancePixels": 4
+    },
+    "locomotion": {
+      "adjacentWidthRatio": 1.2,
+      "adjacentHeightRatio": 1.2,
+      "adjacentAreaRatio": 1.25,
+      "rootCentroidDeltaPixels": 12,
+      "supportDeltaPixels": 2,
+      "secondDifferenceRatio": 0.35,
+      "materialDeltaE00": 3,
+      "edgeClearancePixels": 4
+    }
+  },
+  "actionFamilies": [
+    {
+      "name": "micro-grounded",
+      "actions": [
+        "idle"
+      ],
+      "thresholdProfile": "micro",
+      "squashStretchAllowed": false,
+      "airborneMovementAllowed": false,
+      "supportMode": "all-frames",
+      "allowedDisconnectedComponents": []
+    },
+    {
+      "name": "pose-bridges",
+      "actions": [
+        "sitToStand",
+        "standToSit",
+        "lieDown",
+        "getUp"
+      ],
+      "thresholdProfile": "general",
+      "squashStretchAllowed": false,
+      "airborneMovementAllowed": false,
+      "supportMode": "all-frames",
+      "allowedDisconnectedComponents": []
+    },
+    {
+      "name": "grounded-locomotion",
+      "actions": [
+        "walkLeft",
+        "walkRight",
+        "runLeft",
+        "runRight"
+      ],
+      "thresholdProfile": "locomotion",
+      "squashStretchAllowed": false,
+      "airborneMovementAllowed": false,
+      "supportMode": "authored-contact-phases",
+      "allowedDisconnectedComponents": []
+    }
+  ],
+  "actionSemantics": [
+    {
+      "id": "idle",
+      "loop": true,
+      "fps": 10,
+      "startPose": "seated",
+      "endPose": "seated",
+      "startTemplate": "seatedFront",
+      "endTemplate": "seatedFront"
+    },
+    {
+      "id": "sitToStand",
+      "loop": false,
+      "fps": 10,
+      "startPose": "seated",
+      "endPose": "standing",
+      "startTemplate": "seatedFront",
+      "endTemplate": "standingLeft",
+      "holdStartMs": 80,
+      "holdEndMs": 100
+    },
+    {
+      "id": "standToSit",
+      "loop": false,
+      "fps": 10,
+      "startPose": "standing",
+      "endPose": "seated",
+      "startTemplate": "standingLeft",
+      "endTemplate": "seatedFront",
+      "holdStartMs": 80,
+      "holdEndMs": 100,
+      "inverseOf": "sitToStand"
+    },
+    {
+      "id": "lieDown",
+      "loop": false,
+      "fps": 10,
+      "startPose": "seated",
+      "endPose": "lying",
+      "startTemplate": "seatedFront",
+      "endTemplate": "lyingLeft",
+      "holdStartMs": 80,
+      "holdEndMs": 120
+    },
+    {
+      "id": "getUp",
+      "loop": false,
+      "fps": 10,
+      "startPose": "lying",
+      "endPose": "seated",
+      "startTemplate": "lyingLeft",
+      "endTemplate": "seatedFront",
+      "holdStartMs": 80,
+      "holdEndMs": 100,
+      "inverseOf": "lieDown"
+    },
+    {
+      "id": "walkLeft",
+      "loop": true,
+      "fps": 14,
+      "startPose": "standing",
+      "endPose": "standing",
+      "startTemplate": "standingRight",
+      "endTemplate": "standingRight",
+      "mirrorOf": "walkRight"
+    },
+    {
+      "id": "walkRight",
+      "loop": true,
+      "fps": 14,
+      "startPose": "standing",
+      "endPose": "standing",
+      "startTemplate": "standingLeft",
+      "endTemplate": "standingLeft",
+      "mirrorOf": "walkLeft"
+    },
+    {
+      "id": "runLeft",
+      "loop": true,
+      "fps": 18,
+      "startPose": "standing",
+      "endPose": "standing",
+      "startTemplate": "standingRight",
+      "endTemplate": "standingRight",
+      "mirrorOf": "runRight"
+    },
+    {
+      "id": "runRight",
+      "loop": true,
+      "fps": 18,
+      "startPose": "standing",
+      "endPose": "standing",
+      "startTemplate": "standingLeft",
+      "endTemplate": "standingLeft",
+      "mirrorOf": "runLeft"
+    }
+  ],
+  "directionFacingPolicy": {
+    "actions": {
+      "walkLeft": "left",
+      "walkRight": "right",
+      "runLeft": "left",
+      "runRight": "right"
+    },
+    "measurement": "upper-dark-centroid",
+    "upperBodyFraction": 0.32,
+    "alphaMinimum": 160,
+    "darkChannelMaximum": 105,
+    "splitX": 332.5,
+    "minimumSideClearance": 40
+  },
+  "componentPolicy": {
+    "default": "forbid",
+    "alphaThreshold": 12,
+    "minimumArea": 4,
+    "connectivity": 8,
+    "exceptions": []
+  },
+  "acceptedContractSources": {
+    "releaseThresholds": "Tests/Fixtures/VisualQA/default-pet-b1-contract.json",
+    "packageContract": "docs/adr/ADR-0016-canonical-pet-asset-package-contract.md"
+  }
+}

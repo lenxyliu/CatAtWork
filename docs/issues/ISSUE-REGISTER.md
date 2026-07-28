@@ -31,3 +31,28 @@ The root `ISSUE-CLASSIFICATION.md` is a frozen pre-governance snapshot. Its rows
 | ISSUE-025 | P1 | open / historical-regression | Historical gaze/body coupling does not reproduce in the content-matched current build ([GitHub #20](https://github.com/lenxyliu/CatAtWork/issues/20)) | BC-028 | `codex/gaze-body-regression` |
 | ISSUE-026 | P1 | open / current-confirmed | Local face, eye, coat and anatomy identity drifts across frames/actions ([GitHub #21](https://github.com/lenxyliu/CatAtWork/issues/21)) | BC-029 | `codex/canonical-pet-asset-contract`; `codex/default-pet-visual-*` |
 | ISSUE-027 | P0 | fixed / current-confirmed | Visual QA has no deterministic baseline/release finding contract or fail-closed release policy ([GitHub #14](https://github.com/lenxyliu/CatAtWork/issues/14)) | BC-030; TR-VISUAL-20260726-002..007; TR-GITHUB-20260726-009 | `main@72d2154afbe590654ce5c21be7363d9c67ac267f` |
+
+## 2026-07-28 B4 foundation candidate evidence
+
+- Candidate 6 passed the then-current numeric gate but failed native review:
+  its single light/warm bridge visibly changed the canonical coat identity
+  (`ISSUE-016`, `ISSUE-026`), and `walkLeft`/`runLeft` faced right while the
+  mirrored Right actions faced left (`ISSUE-022`). The user-observed backward
+  locomotion and the agent's contact-sheet confirmation are preserved in
+  `TR-ASSET-20260727-015`.
+- The foundation validator now measures canonical light, warm and dark groups
+  independently and checks absolute locomotion-facing direction on every
+  walk/run frame. Candidate 7 and candidate 8 failures remain immutable in
+  `TR-ASSET-20260727-017` and `TR-ASSET-20260727-018`; neither was installed.
+- Candidate 9 is the locally accepted foundation candidate. Its action-scoped
+  B2 report passes 3,802 observations with zero findings, all 14 foundation
+  checks pass, the full Python and fresh-path Swift suites pass, and native
+  fixed-background review covers at least five loops of `idle`, `walkLeft`,
+  `walkRight`, `runLeft` and `runRight`. Content-matched acceptance is
+  preserved in `TR-ASSET-20260727-020`; the affected Issues stay open until
+  the reviewed foundation PR is merged and later B4 families are evaluated.
+- Production `previewAnimation` intentionally sets horizontal velocity to
+  zero, so fixed-background loop review is not a displacement test. The
+  already registered near-zero/phase-bound runtime concern remains
+  `ISSUE-019` for the B5 display-time locomotion slice; no B5 runtime behavior
+  is changed by this B4 asset branch.
