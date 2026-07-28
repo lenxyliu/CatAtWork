@@ -561,7 +561,7 @@ Update rows and append dated events; do not erase a failed or superseded event.
 | B1 | complete | evidence [PR #23](https://github.com/lenxyliu/CatAtWork/pull/23) accepted as `054c05f4450a162b981d980456abdc443521a530`; closure [PR #24](https://github.com/lenxyliu/CatAtWork/pull/24) accepted as `eb988253689d4ea31c462f4ef6b76015a61a4630` | ISSUE-015..026; BC-018..029; CHG-20260724-003; CHG-20260726-001/002; TR-VISUAL-20260724-001..011; TR-GITHUB-20260724-003; TR-GITHUB-20260726-001..005; TR-GOVERNANCE-20260724-005; TR-GOVERNANCE-20260726-001..003; evidence manifest `1c037439b73fa07fa188b20efd8f08f5fcc24b547ba9d2a1e6124fd645bee0d6`; final B1 head `273057ad7663a1c7df775821cc1a7c929e7a0324` passed hosted `governance`/`swift` | Preserve the accepted checkpoint |
 | B2 | complete | [PR #26](https://github.com/lenxyliu/CatAtWork/pull/26) final head `443023ec738c4b449416dcb01e38355a789b9b2e` accepted as `72d2154afbe590654ce5c21be7363d9c67ac267f` | ISSUE-027; BC-030; ADR-0015; CHG-20260726-003/004; TR-VISUAL-20260726-001..007; TR-GOVERNANCE-20260726-004..012; TR-GITHUB-20260726-006..009; GitHub #14 [pre-merge](https://github.com/lenxyliu/CatAtWork/issues/14#issuecomment-5084075110) / [accepted](https://github.com/lenxyliu/CatAtWork/issues/14#issuecomment-5084083228); #15 [pre-merge](https://github.com/lenxyliu/CatAtWork/issues/15#issuecomment-5084075222) / [accepted](https://github.com/lenxyliu/CatAtWork/issues/15#issuecomment-5084083337) | Preserve the accepted checkpoint; do not begin B3 in the B2 task |
 | B3 | complete | [PR #28](https://github.com/lenxyliu/CatAtWork/pull/28) final head `4944e96727cd3bb3c4eb4dbc6aa1bfd716a2701a` accepted as `484fa7789d0a72423e8a1c89926e78d64de047b2` | ISSUE-015/017/018/021/022/026; BC-018/020/021/024/025/029/030; ADR-0016; CHG-20260726-005 and CHG-20260727-001; TR-ASSET-20260726-001..019; TR-GOVERNANCE-20260726-013/014; TR-GITHUB-20260727-001; hosted [governance](https://github.com/lenxyliu/CatAtWork/actions/runs/30216209266/job/89830746704) / [swift](https://github.com/lenxyliu/CatAtWork/actions/runs/30216209266/job/89830746649); [review 4782406719](https://github.com/lenxyliu/CatAtWork/pull/28#pullrequestreview-4782406719); GitHub #15 [pre-merge](https://github.com/lenxyliu/CatAtWork/issues/15#issuecomment-5084967469) / [accepted](https://github.com/lenxyliu/CatAtWork/issues/15#issuecomment-5084986861) | Preserve the accepted contract checkpoint; do not begin B4 in the B3 closure task |
-| B4 | in-progress / foundation-review | `codex/default-pet-visual-foundation` from `main@36b033b28677403821e6ccefb96838b3f58c140f`; candidate 9 locally accepted | ISSUE-015/016/017/018/021/022/026; BC-018/019/020/021/024/025/029; ADR-0016; CHG-20260727-002; TR-ASSET-20260727-001..020 | Publish only the foundation PR after its exact final head passes hosted governance/Swift and review; interaction, physical and integration remain not started |
+| B4 | in-progress / foundation-complete | foundation [PR #30](https://github.com/lenxyliu/CatAtWork/pull/30) final head `3b39c0f7385fcbb288d7eebc589fa5a00df324f3` accepted as `48ae9466e460ddbeab5d7b39a245760614568448` | ISSUE-015/016/017/018/021/022/026; BC-018/019/020/021/024/025/029; ADR-0016; CHG-20260727-002/003; TR-ASSET-20260727-001..020; TR-GOVERNANCE-20260728-001/002/003; TR-GITHUB-20260728-001; hosted [governance](https://github.com/lenxyliu/CatAtWork/actions/runs/30329649281/job/90181935397) / [swift](https://github.com/lenxyliu/CatAtWork/actions/runs/30329649281/job/90181935443); [review 4793818333](https://github.com/lenxyliu/CatAtWork/pull/30#pullrequestreview-4793818333) | Start only the B4 interaction slice in a new Local task; physical and integration remain not started |
 | B5 | ready-not-started | not started | GitHub #13/#18 | Reproduce all locomotion entry paths with synchronized logs after the sequential B3/B4 decision |
 | B6 | ready-not-started | not started | GitHub #19 | Run delay-injection red test before deciding on a fix |
 | B7 | ready-not-started | not started | GitHub #20 | Add current-build gaze/body orthogonality oracle |
@@ -723,6 +723,23 @@ Update rows and append dated events; do not erase a failed or superseded event.
   zero horizontal velocity, so ISSUE-019 remains B5 scope and no B5 behavior
   changed. The foundation slice awaits exact-final-head hosted checks, review
   and squash merge; interaction, physical and integration have not started.
+- 2026-07-28: B4 foundation publication
+  [PR #30](https://github.com/lenxyliu/CatAtWork/pull/30) retained exact base
+  `36b033b28677403821e6ccefb96838b3f58c140f`, final head
+  `3b39c0f7385fcbb288d7eebc589fa5a00df324f3` and all 246 intended paths.
+  Hosted
+  [governance](https://github.com/lenxyliu/CatAtWork/actions/runs/30329649281/job/90181935397)
+  and
+  [Swift/package](https://github.com/lenxyliu/CatAtWork/actions/runs/30329649281/job/90181935443)
+  passed on that exact head; procedural
+  [review 4793818333](https://github.com/lenxyliu/CatAtWork/pull/30#pullrequestreview-4793818333)
+  found no blocking publication issue. The expected-head guard squash-merged
+  the PR as `48ae9466e460ddbeab5d7b39a245760614568448`.
+  Pre-merge and accepted-merge evidence was appended to GitHub
+  #9/#10/#11/#12/#16/#17/#21 and #15 as recorded in
+  TR-GITHUB-20260728-001. The foundation slice is complete, but B4 remains in
+  progress; interaction, physical and integration remain not started, all
+  child Issues remain open, and B5/B6/B7/B8 did not change.
 
 ## 10. Plan revision rules
 
@@ -749,3 +766,4 @@ Update rows and append dated events; do not erase a failed or superseded event.
 | 2026-07-26 | CHG-20260726-005 | Implemented and locally verified canonical format-2 asset/package semantics and explicit format-1 compatibility without modifying production content; B3 awaits reviewed PR acceptance. |
 | 2026-07-27 | CHG-20260727-001 | Recorded B3 PR #28 exact scope, final-head hosted checks, procedural review, guarded squash merge and scoped Issue evidence while keeping B4 not started. |
 | 2026-07-28 | CHG-20260727-002 | Froze and locally accepted the B4 foundation references and nine-action/216-frame rebuild, preserving candidate failures and the later-slice boundaries pending reviewed PR publication. |
+| 2026-07-28 | CHG-20260727-003 | Recorded B4 foundation PR #30 final-head checks, review, guarded squash merge, scoped Issue evidence and the interaction-slice handoff without starting it. |
