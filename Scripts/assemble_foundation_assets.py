@@ -184,52 +184,202 @@ def alpha_centroid(image: Image.Image, *, threshold: int = 12) -> tuple[float, f
     )
 
 
+def round_ratio_ties_to_even(numerator: int, denominator: int) -> int:
+    quotient, remainder = divmod(numerator, denominator)
+    comparison = remainder * 2 - denominator
+    if comparison < 0:
+        return quotient
+    if comparison > 0:
+        return quotient + 1
+    return quotient + quotient % 2
+
+
+def material_label(
+    pixel: tuple[int, int, int, int],
+    *,
+    normalization: dict[str, Any],
+    lightness_cache: dict[tuple[int, int, int], float] | None = None,
+) -> str | None:
+    red, green, blue, alpha = pixel
+    if alpha < int(normalization["classificationAlphaMinimum"]):
+        return None
+    rgb = (red, green, blue)
+    lightness = (
+        lightness_cache.get(rgb)
+        if lightness_cache is not None
+        else None
+    )
+    if lightness is None:
+        lightness = srgb_to_lab(red, green, blue)[0]
+        if lightness_cache is not None:
+            lightness_cache[rgb] = lightness
+    if lightness <= normalization["darkMaximumLStar"]:
+        return "dark"
+    if lightness >= normalization["lightMinimumLStar"]:
+        return "light"
+    if red >= green + 8 and green >= blue:
+        return "warm"
+    return None
+
+
+def local_material_means(
+    image: Image.Image,
+    *,
+    labels: list[str | None],
+    radius: int,
+) -> list[tuple[int, int, int] | None]:
+    """Return exact same-material box means without crossing material/alpha edges."""
+
+    width, height = image.size
+    pixels = list(image.getdata())
+    means: list[tuple[int, int, int] | None] = [None] * len(pixels)
+    stride = width + 1
+    integral_size = stride * (height + 1)
+    for material in ("light", "warm", "dark"):
+        integrals = [[0] * integral_size for _ in range(4)]
+        for y in range(height):
+            row_totals = [0, 0, 0, 0]
+            row_offset = y * width
+            current_row = (y + 1) * stride
+            previous_row = y * stride
+            for x in range(width):
+                offset = row_offset + x
+                red, green, blue, _ = pixels[offset]
+                if labels[offset] == material:
+                    row_totals[0] += 1
+                    row_totals[1] += red
+                    row_totals[2] += green
+                    row_totals[3] += blue
+                for channel in range(4):
+                    integrals[channel][current_row + x + 1] = (
+                        integrals[channel][previous_row + x + 1]
+                        + row_totals[channel]
+                    )
+        for y in range(height):
+            top = max(0, y - radius)
+            bottom = min(height, y + radius + 1)
+            for x in range(width):
+                offset = y * width + x
+                if labels[offset] != material:
+                    continue
+                left = max(0, x - radius)
+                right = min(width, x + radius + 1)
+                top_left = top * stride + left
+                top_right = top * stride + right
+                bottom_left = bottom * stride + left
+                bottom_right = bottom * stride + right
+                totals = [
+                    integral[bottom_right]
+                    - integral[top_right]
+                    - integral[bottom_left]
+                    + integral[top_left]
+                    for integral in integrals
+                ]
+                count = totals[0]
+                if count <= 0:
+                    raise FoundationBuildError(
+                        "material neighborhood unexpectedly has no samples"
+                    )
+                means[offset] = tuple(
+                    round_ratio_ties_to_even(total, count)
+                    for total in totals[1:]
+                )
+    return means
+
+
 def normalize_material_colors(
     image: Image.Image,
     *,
     material_references: dict[str, Any],
 ) -> Image.Image:
-    """Pull governed coat groups toward one fixed palette without changing alpha."""
+    """Correct material location while restoring same-material local detail."""
 
     normalization = material_references["normalization"]
+    if (
+        normalization.get("method")
+        != "fixed-source-effect-detail-preserving-material-pull"
+    ):
+        raise FoundationBuildError("unsupported foundation material normalization")
+    if normalization.get("rounding") != "nearest-integer-ties-to-even":
+        raise FoundationBuildError("unsupported foundation color rounding")
+    source_weight = normalization.get("sourceWeight")
+    canonical_weight = normalization.get("canonicalWeight")
+    detail_numerator = normalization.get("detailWeightNumerator")
+    detail_denominator = normalization.get("detailWeightDenominator")
+    radius = normalization.get("detailNeighborhoodRadius")
+    alpha_minimum = normalization.get("classificationAlphaMinimum")
+    if (
+        isinstance(source_weight, bool)
+        or not isinstance(source_weight, int)
+        or source_weight <= 0
+        or isinstance(canonical_weight, bool)
+        or not isinstance(canonical_weight, int)
+        or canonical_weight <= 0
+    ):
+        raise FoundationBuildError("foundation color weights must be positive integers")
+    if (
+        isinstance(detail_numerator, bool)
+        or not isinstance(detail_numerator, int)
+        or detail_numerator < 0
+        or isinstance(detail_denominator, bool)
+        or not isinstance(detail_denominator, int)
+        or detail_denominator <= 0
+        or detail_numerator > detail_denominator
+    ):
+        raise FoundationBuildError("foundation detail weight must be between zero and one")
+    if isinstance(radius, bool) or not isinstance(radius, int) or radius <= 0:
+        raise FoundationBuildError("foundation detail neighborhood must be positive")
+    if (
+        isinstance(alpha_minimum, bool)
+        or not isinstance(alpha_minimum, int)
+        or not 0 <= alpha_minimum <= 255
+    ):
+        raise FoundationBuildError("foundation classification alpha is invalid")
+    total_weight = source_weight + canonical_weight
     targets = {
         "light": tuple(material_references["lightCoat"]["srgbMedian"]),
-        "warm": tuple(
-            material_references["warmCoat"].get(
-                "renderTarget",
-                material_references["warmCoat"]["srgbMedian"],
-            )
-        ),
+        "warm": tuple(material_references["warmCoat"]["srgbMedian"]),
         "dark": tuple(material_references["darkMask"]["srgbMedian"]),
     }
-    cache: dict[tuple[int, int, int], tuple[int, int, int]] = {}
+    pixels = list(image.getdata())
+    lightness_cache: dict[tuple[int, int, int], float] = {}
+    labels = [
+        material_label(
+            pixel,
+            normalization=normalization,
+            lightness_cache=lightness_cache,
+        )
+        for pixel in pixels
+    ]
+    local_means = local_material_means(
+        image,
+        labels=labels,
+        radius=radius,
+    )
     normalized = []
-    for red, green, blue, alpha in image.getdata():
-        if alpha < 12:
+    for offset, (red, green, blue, alpha) in enumerate(pixels):
+        material = labels[offset]
+        if material is None:
             normalized.append((red, green, blue, alpha))
             continue
-        rgb = (red, green, blue)
-        replacement = cache.get(rgb)
-        if replacement is None:
-            lightness = srgb_to_lab(red, green, blue)[0]
-            target = None
-            if lightness <= normalization["darkMaximumLStar"]:
-                target = targets["dark"]
-            elif lightness >= normalization["lightMinimumLStar"]:
-                target = targets["light"]
-            elif red >= green + 8 and green >= blue:
-                target = targets["warm"]
-            if target is None:
-                replacement = rgb
-            else:
-                # A single 80% pull is used for every governed frame. This
-                # retains source shading while eliminating take-to-take color
-                # drift; it is never tuned per action or frame.
-                replacement = tuple(
-                    round((source + canonical * 4) / 5)
-                    for source, canonical in zip(rgb, target)
-                )
-            cache[rgb] = replacement
+        local_mean = local_means[offset]
+        if local_mean is None:
+            raise FoundationBuildError("governed material pixel has no local mean")
+        replacement = []
+        for source, canonical, local in zip(
+            (red, green, blue),
+            targets[material],
+            local_mean,
+        ):
+            base = round_ratio_ties_to_even(
+                source * source_weight + canonical * canonical_weight,
+                total_weight,
+            )
+            detail = round_ratio_ties_to_even(
+                (source - local) * detail_numerator,
+                detail_denominator,
+            )
+            replacement.append(max(0, min(255, base + detail)))
         normalized.append((*replacement, alpha))
     result = Image.new("RGBA", image.size)
     result.putdata(normalized)
@@ -330,6 +480,18 @@ def author_canvas(
             "sourceWeight": material_references["normalization"]["sourceWeight"],
             "canonicalWeight": material_references["normalization"][
                 "canonicalWeight"
+            ],
+            "detailNeighborhoodRadius": material_references["normalization"][
+                "detailNeighborhoodRadius"
+            ],
+            "detailWeightNumerator": material_references["normalization"][
+                "detailWeightNumerator"
+            ],
+            "detailWeightDenominator": material_references["normalization"][
+                "detailWeightDenominator"
+            ],
+            "classificationAlphaMinimum": material_references["normalization"][
+                "classificationAlphaMinimum"
             ],
             "perActionOrFrameTuning": False,
         },
@@ -556,7 +718,7 @@ def build(
         raise FoundationBuildError(f"output already exists: {output_root}")
     contract = load_json(contract_path)
     if (
-        contract.get("schemaVersion") != "catatwork.foundation/v1"
+        contract.get("schemaVersion") != "catatwork.foundation/v2"
         or contract.get("status") != "frozen"
         or tuple(contract["scope"]["actions"]) != EXPECTED_ACTIONS
         or contract["scope"]["frameCount"] != 216
@@ -858,7 +1020,7 @@ def build(
             "connected-pose-extraction",
             "transparent-padding-crop",
             "integer-translation-to-authored-canvas",
-            "fixed-canonical-material-palette-pull",
+            "fixed-source-effect-detail-preserving-material-pull",
             "exact-order-reversal",
             "horizontal-pixel-mirror",
         ],

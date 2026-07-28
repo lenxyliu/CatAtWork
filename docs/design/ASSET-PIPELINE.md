@@ -54,6 +54,30 @@ Canonical output is written through a distinct staging directory and the
 builder refuses an existing destination; it never silently replaces a
 production or previously reviewed package.
 
+### B4 source-effect color authoring
+
+Generated effect sheets are pre-authoring inputs, not canonical package
+sources. Before a generated pose becomes a fixed-canvas production frame, the
+B4 authoring step applies the package-global color rule accepted by ADR-0017:
+
+- one source-effect reference is bound by source-sheet and extracted-frame
+  SHA-256 plus recorded light, warm and dark material measurements;
+- every material uses the same declared low-frequency source/target weights,
+  same-material neighborhood, detail-residual weight, thresholds and
+  nearest-integer ties-to-even rounding;
+- manual per-action or per-frame tuning is forbidden;
+- the accepted source effect must keep identical size and alpha and remain
+  within ΔE00 3 in each material after authoring;
+- same-material local L* gradient RMS must remain within the declared
+  authored/source interval so color continuity cannot be achieved by
+  flattening texture; and
+- the authored production PNG, not the generated effect sheet, is the
+  canonical sRGB source whose bytes are copied identically into the atlas.
+
+Color authoring may change RGB only. It may not change alpha, geometry,
+canvas, scale, root/support, identity, pose, components, facing or
+source-to-atlas identity.
+
 ## Legacy authoring boundary
 
 The accepted asset `2026.07.23.6` and its `animation-spec.json` remain
@@ -76,3 +100,4 @@ No old Git object database or historical local artifact may be removed until: ex
 | --- | --- | --- |
 | 2026-07-23 | CHG-20260723-001 | Adopted LFS-current plus immutable-Release-history model and deletion gate. |
 | 2026-07-26 | CHG-20260726-005 | Added fixed-canvas format-2 authoring, explicit anchors/identity/color/components, exact pixel round-trip and an explicit legacy-v1 boundary. |
+| 2026-07-28 | CHG-20260728-001 | Bound B4 color authoring to the accepted source-effect color/detail oracle while preserving the canonical authored-source-to-atlas identity path. |
