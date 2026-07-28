@@ -63,3 +63,27 @@ The root `ISSUE-CLASSIFICATION.md` is a frozen pre-governance snapshot. Its rows
   TR-GITHUB-20260728-001 preserves the exact Issue comment links. This accepts
   candidate 9 for the foundation family only; the child Issues remain open
   until later B4 families are rebuilt and evaluated.
+
+## 2026-07-28 B4 foundation color prerequisite
+
+- The later interaction native checkpoint proved that the accepted generated
+  effect appearance was changed by the frozen foundation palette pull:
+  68,203/68,749 visible pixels changed and dark-material ΔE00 reached
+  7.225664. The interaction slice stayed preserved and paused.
+- The first equal-weight correction passed color medians but retained only
+  about half of the accepted same-material local fur gradients and failed
+  direct native review. TR-ASSET-20260728-021 preserves that failure.
+- The accepted correction binds the effect source by SHA-256, keeps each
+  material within ΔE00 3, and separately requires local L* gradient retention
+  in `[0.98, 1.05]`. All 216 foundation frames pass the color-only proof with
+  no alpha, size, hidden-RGB or other non-color change.
+- PR #32 exact head
+  `23ece48b3c25422a2977ecccfdb92b34fa5662f0` passed hosted governance and
+  Swift/package checks, received procedural review 4798747648 and was guarded
+  squash-merged as `144390af4a3451f079608edc6b6e04ae3db8a87d`.
+  TR-GITHUB-20260728-005 preserves the exact Issue evidence. ISSUE-016 and
+  ISSUE-026 remain open for later B4 families.
+- The user's separately observed cross-action size inconsistency remains
+  ISSUE-017 / BC-020. Fast blinking remains a non-color timing observation
+  that needs a separate reproduction before attribution to ISSUE-023 versus
+  authored blink duration. Neither is claimed fixed by the color prerequisite.
